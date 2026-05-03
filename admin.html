@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDURATE | Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: 0.3s; }
+        
+        :root { 
+            --bg: #e0e5ec; --text: #2c3e50; --shadow-light: #ffffff; --shadow-dark: #a3b1c6; 
+            --accent: #3498db; --sidebar-w: 280px; 
+            --danger: #e74c3c; --success: #2ecc71; --warning: #f39c12;
+            --glow-color: rgba(104, 109, 224, 0.6); 
+        }
+        
+        .dark-mode { 
+            --bg: #2d3436; --text: #dfe6e9; --shadow-light: #3d4446; --shadow-dark: #1e2223; --accent: #f1c40f; 
+        }
+
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; position: relative; }
+
+        .sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); background: var(--bg); height: 100vh; padding: 40px 20px; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.1); transition: transform 0.4s ease; z-index: 1000; }
+        .logo-3d { font-size: 32px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 50px; text-align: center; text-shadow: 2px 2px 0px var(--shadow-light), 4px 4px 0px var(--shadow-dark); }
+
+        .nav-menu { list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 5px; }
+        .nav-menu li { padding: 15px 20px; margin-bottom: 10px; border-radius: 15px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 12px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); color: var(--text);}
+        .nav-menu li:hover, .nav-menu li.active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); color: var(--accent); }
+        .logout-item { margin-top: auto !important; margin-bottom: 0 !important; color: var(--danger) !important; }
+
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; width: 100%;}
+        .top-icons { width: 100%; max-width: 1100px; display: flex; justify-content: flex-end; gap: 20px; margin-bottom: 25px; align-items: center; }
+        .hamburger { display: none; margin-right: auto; cursor: pointer; color: var(--text); } 
+        .hamburger svg { width: 30px; height: 30px; }
+
+        .icon-btn { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; background: var(--bg); box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light); position: relative;}
+        .icon-btn:active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); transform: scale(0.95); }
+
+        .page-title-3d { font-size: 20px; font-weight: 800; color: #fff; background: var(--danger); padding: 10px 35px; border-radius: 15px; box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light); margin-bottom: 25px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);}
+        
+        .admin-card { width: 100%; max-width: 1100px; background: var(--bg); padding: 35px; border-radius: 25px; box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light); margin-bottom: 30px; }
+        .admin-card.compact { padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .section-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; border-left: 6px solid var(--accent); padding-left: 12px; color: var(--text); display: flex; justify-content: space-between; align-items: center;}
+        
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; width: 100%;}
+        .input-group { text-align: left; }
+        .input-group label { display: block; font-size: 13px; font-weight: 700; opacity: 0.7; margin-bottom: 8px; }
+        .input-field { width: 100%; padding: 14px 15px; border-radius: 12px; border: none; background: var(--bg); box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); outline: none; font-size: 13.5px; font-weight: 600; color: var(--text); transition: 0.3s; }
+        .input-field:focus { border: 1px solid var(--glow-color); box-shadow: 0 0 10px var(--glow-color), inset 2px 2px 5px var(--shadow-dark); }
+        
+        .btn { padding: 14px 30px; border-radius: 12px; border: none; background: var(--bg); box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light); font-weight: 800; color: var(--accent); cursor: pointer; transition: 0.3s; font-size: 14px; width: 100%; margin-top: 10px; }
+        .btn:active { box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light); transform: scale(0.98); }
+        .btn-update { color: var(--success); display: none; }
+        .btn-cancel { color: var(--danger); display: none; margin-top: 15px;}
+        .btn-clear { color: var(--danger); border: 2px solid var(--danger); background: transparent; padding: 8px 25px; font-size: 13px; width: auto; margin-top: 5px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s;}
+        .btn-clear:hover { background: var(--danger); color: #fff; }
+        .btn-clear:active { transform: scale(0.95); }
+
+        .user-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .user-table th, .user-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; }
+        .user-table th { font-weight: 800; color: var(--accent); text-transform: uppercase; font-size: 12px; letter-spacing: 1px;}
+
+        .action-btns { display: flex; gap: 10px; flex-wrap: wrap;}
+        .btn-action { padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer; border: none; background: var(--bg); box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light); transition: 0.2s; text-transform: uppercase;}
+        .btn-action:active { box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light); transform: scale(0.95); }
+        
+        .btn-accept { color: var(--success); }
+        .btn-decline, .btn-remove { color: var(--danger); }
+        .btn-suspend { color: var(--warning); }
+        
+        .edit-btn { color: var(--accent); cursor: pointer; font-weight: 700; background: none; border: none; font-size: 13px; }
+        .delete-btn { color: var(--danger); cursor: pointer; font-weight: 700; background: none; border: none; font-size: 13px; }
+
+        .tabs { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 2px solid rgba(0,0,0,0.05); padding-bottom: 15px;}
+        .tab-btn { background: none; border: none; font-size: 14px; font-weight: 700; color: var(--text); opacity: 0.5; cursor: pointer; padding: 5px 10px; transition: 0.3s; position: relative;}
+        .tab-btn.active { opacity: 1; color: var(--accent); }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -17px; left: 0; width: 100%; height: 3px; background: var(--accent); border-radius: 5px;}
+
+        .role-badge { padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .role-student { background: rgba(52, 152, 219, 0.1); color: #3498db; }
+        .role-teacher { background: rgba(46, 204, 113, 0.1); color: var(--success); }
+        .role-admin { background: rgba(142, 68, 173, 0.1); color: #8e44ad; }
+        .role-sec-admin { background: rgba(231, 76, 60, 0.1); color: var(--danger); }
+        .status-suspended { background: rgba(243, 156, 18, 0.1); color: var(--warning); border: 1px solid var(--warning);}
+        .clickable-name { color: var(--accent); font-weight: 700; cursor: pointer; text-decoration: underline; text-decoration-color: transparent; transition: 0.3s;}
+        .clickable-name:hover { text-decoration-color: var(--accent); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 10000; opacity: 0; transition: 0.3s; }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-box { background: var(--bg); width: 90%; max-width: 450px; padding: 30px; border-radius: 25px; box-shadow: 10px 10px 30px rgba(0,0,0,0.3), inset 2px 2px 5px var(--shadow-light); transform: scale(0.9); transition: 0.3s; position: relative;}
+        .modal-overlay.show .modal-box { transform: scale(1); }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 20px; font-weight: 800; color: var(--danger); cursor: pointer; background: none; border: none;}
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed rgba(0,0,0,0.05); padding-bottom: 5px;}
+        .info-label { font-weight: 700; opacity: 0.7; }
+        .info-val { font-weight: 600; color: var(--text); text-align: right;}
+
+        .notif-dropdown { display: none; position: absolute; top: 60px; right: 0; width: 340px; max-height: 400px; overflow-y: auto; background: var(--bg); padding: 20px; border-radius: 20px; box-shadow: 10px 10px 30px rgba(0,0,0,0.2), inset 2px 2px 5px var(--shadow-light); z-index: 1000; text-align: left; }
+        .notif-dropdown.show { display: block; }
+        .notif-item { padding: 12px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
+        .notif-date { font-size: 11px; opacity: 0.6; display: block; margin-bottom: 4px; color: var(--accent); font-weight: 800;}
+        .badge { display: none; position: absolute; top: 12px; right: 14px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; }
+
+        .notice-box { width: 100%; height: 80px; padding: 15px; border-radius: 12px; border: none; background: var(--bg); box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); color: var(--text); outline: none; font-size: 13.5px; resize: none; font-family: 'Poppins', sans-serif; margin-bottom: 10px; }
+        .notice-box:focus { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--glow-color); }
+
+        #toast { position: fixed; bottom: 30px; right: 30px; color: #fff; padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 14.5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); pointer-events: none; z-index: 9999; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        .search-container { display: flex; align-items: center; gap: 10px; }
+        .search-box { width: 250px; padding: 10px 15px; border-radius: 10px; border: none; background: var(--bg); box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light); outline: none; font-size: 13px; font-weight: 600; color: var(--text); transition: 0.3s; }
+        .search-box:focus { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--glow-color); }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); box-shadow: 10px 0 20px rgba(0,0,0,0.3); }
+            .sidebar.open { transform: translateX(0); }
+            .hamburger { display: block; }
+            .top-icons { justify-content: space-between; margin-bottom: 15px; } 
+            .main-content { padding: 15px; }
+            .admin-card { padding: 25px 20px; }
+            .input-grid { grid-template-columns: 1fr; }
+            .user-table th, .user-table td { padding: 10px 5px; font-size: 11px; }
+            .action-btns { flex-direction: column; gap: 5px; }
+            .notif-dropdown { right: -50px; width: 280px;}
+            .search-container { width: 100%; margin-top: 10px; }
+            .search-box { width: 100%; }
+        }
+    </style>
+</head>
+<body id="body">
+
+    <div id="authOverlay" style="display: flex; position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); z-index: 99999; flex-direction: column; align-items:center; justify-content:center;">
+        <h1 style="color: var(--danger); font-size: 30px; font-weight: 800;">Access Denied! 🚫</h1>
+        <p id="authMessage" style="margin-top: 10px; font-weight: 600;">Only Administrators can view this panel.</p>
+    </div>
+
+    <div class="modal-overlay" id="userDetailsModal">
+        <div class="modal-box">
+            <button class="close-modal" onclick="closeModal()">×</button>
+            <h2 style="color: var(--accent); margin-bottom: 20px; border-bottom: 2px solid rgba(0,0,0,0.05); padding-bottom: 10px;">Registration Details</h2>
+            <div id="modalContent"></div>
+            <div style="display: flex; gap: 10px; margin-top: 25px; justify-content: center; flex-wrap: wrap;" id="modalActions"></div>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="logo-3d">EDURATE</div>
+        <ul class="nav-menu">
+            <li onclick="location.href='dashboard.html'">🏠 Dashboard</li>
+            <li class="student-only" style="display:none;" onclick="location.href='evaluation.html'">📊 Evaluation</li> 
+            <li onclick="location.href='faculty.html'">👨‍🏫 Faculty Members</li>
+            <li onclick="location.href='profile.html'">👤 My Profile</li>
+            <li onclick="location.href='setting.html'">⚙️ Setting</li>
+            <li class="active admin-only" onclick="location.href='admin.html'">🔐 Admin Panel</li>
+            <li class="logout-item" id="logoutBtn">🚪 Log out</li>
+        </ul>
+    </div>
+
+    <div class="main-content" id="mainWrapper" style="display: none;">
+        
+        <div class="top-icons">
+            <div class="hamburger" id="hamburgerBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+            <div style="display: flex; gap: 20px; position: relative;">
+                <div class="icon-btn" id="theme-toggle">🌙</div>
+                <div class="icon-btn" id="notifBtn">
+                    🔔<span class="badge" id="notifBadge"></span>
+                </div>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <h4 style="margin-bottom:10px; padding-bottom:10px; border-bottom:2px solid rgba(0,0,0,0.05);">Notifications</h4>
+                    <div id="notifList">Loading notifications...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-title-3d">Control Panel</div>
+
+        <!-- Pending Approvals Card -->
+        <div class="admin-card" style="border: 2px solid var(--warning);" id="pendingSection">
+            <h2 class="section-title">⏳ Pending Approvals <span id="pendingCount" style="background: var(--danger); color: white; padding: 2px 10px; border-radius: 10px; font-size: 12px; margin-left: 10px;">0</span></h2>
+            <div style="overflow-x: auto;">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Role</th>
+                            <th>ID / Staff ID</th>
+                            <th>Full Name</th>
+                            <th>Requested On</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingTableBody">
+                        <tr><td colspan="5" style="text-align:center; opacity:0.5;">Loading pending requests...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Manage System Users Card -->
+        <div class="admin-card" style="border: 2px solid var(--success);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin-bottom: 0;">✅ Manage System Users</h2>
+                <div class="search-container">
+                    <input type="text" id="userSearchBox" class="search-box" placeholder="🔍 Search Name, ID or Email...">
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('student')">Students</button>
+                <button class="tab-btn" onclick="switchTab('teacher')">Teachers</button>
+                <button class="tab-btn" id="adminTabBtn" onclick="switchTab('admin')">Admins</button>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>ID / Staff ID</th>
+                            <th>Full Name</th>
+                            <th>Email Address</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvedTableBody">
+                        <tr><td colspan="5" style="text-align:center; opacity:0.5;">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add Faculty Profile Card -->
+        <div class="admin-card">
+            <h2 class="section-title" id="form-title">Add Non-Registered Faculty Profile</h2>
+            <p style="font-size: 13px; opacity: 0.6; margin-top: -15px; margin-bottom: 20px;">* Add manual profiles for teachers who haven't registered yet.</p>
+            
+            <div class="input-grid">
+                <div class="input-group"><label>Staff ID *</label><input type="text" id="tStaffId" class="input-field" placeholder="e.g. TCH-101"></div>
+                <div class="input-group"><label>Phone Number *</label><input type="text" id="tPhone" class="input-field" placeholder="e.g. 017XXXXXXXX"></div>
+                <div class="input-group"><label>Full Name *</label><input type="text" id="tName" class="input-field" placeholder="e.g. Dr. John Doe"></div>
+                <div class="input-group"><label>Short Name *</label><input type="text" id="tShort" class="input-field" placeholder="e.g. JD"></div>
+                <div class="input-group"><label>Course / Dept *</label><input type="text" id="tDept" class="input-field" placeholder="e.g. Software Engineering"></div>
+                <div class="input-group"><label>Email *</label><input type="email" id="tEmail" class="input-field" placeholder="teacher@univ.edu"></div>
+            </div>
+            <input type="hidden" id="editingDocId">
+            <button class="btn" id="addBtn" onclick="addTeacher()">➕ Add Profile</button>
+            <button class="btn" id="updateBtn" style="display:none; color:var(--success);" onclick="updateTeacher()">💾 Update Profile</button>
+            <button class="btn" id="cancelBtn" style="display:none; color:var(--danger); margin-top:10px;" onclick="cancelEdit()">❌ Cancel Editing</button>
+        </div>
+
+        <!-- Manage Existing Faculty Profiles Card -->
+        <div class="admin-card">
+            <h2 class="section-title">Manage Existing Faculty Profiles</h2>
+            <div style="overflow-x: auto;">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Staff ID</th>
+                            <th>Name</th>
+                            <th>Course</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacherTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Notice & Deadline Publisher Card -->
+        <div class="admin-card" style="border: 2px solid var(--accent);">
+            <h2 class="section-title">📢 Notice & Deadline Publisher</h2>
+            <p style="font-size: 13px; opacity: 0.6; margin-top: -15px; margin-bottom: 15px;">Publish evaluation deadlines or important notices. It will show on Dashboard (for Students) and Notifications.</p>
+            
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>Set Deadline (Optional)</label>
+                    <input type="datetime-local" id="noticeDeadline" class="input-field">
+                </div>
+                <div class="input-group">
+                    <label>Notice Message (Required)</label>
+                    <textarea id="noticeText" class="notice-box" placeholder="e.g. Evaluation is open! Submit your feedback by 15th May..."></textarea>
+                </div>
+            </div>
+            <button class="btn" onclick="publishNotice()">🚀 Publish Notice</button>
+        </div>
+
+        <!-- System Maintenance (Clear Notifications) -->
+        <div class="admin-card compact" style="border: 2px solid var(--danger);">
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 5px;">🧹 System Maintenance</h3>
+            <p style="font-size: 12px; opacity: 0.6; margin-bottom: 10px; text-align: center;">Clear all notification history from the database for all users.</p>
+            <button class="btn-clear" onclick="clearAllNotifications()">🚮 Clear All Notifications</button>
+        </div>
+
+    </div>
+
+    <div id="toast">Message goes here</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc, onSnapshot, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBj4d6Bcpwe6UYZIqmuhCW_HHzQmpm8bYY",
+            authDomain: "edurate-74300.firebaseapp.com",
+            projectId: "edurate-74300",
+            storageBucket: "edurate-74300.firebasestorage.app",
+            messagingSenderId: "616936292339",
+            appId: "1:616936292339:web:61a50822fad7e71b6f1c86",
+            measurementId: "G-JDF60JSMQT"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserId = null;
+        let adminLevel = 'secondary'; 
+        
+        const SUPER_ADMIN_EMAIL = "mrchowdhury.raihan@gmail.com"; 
+
+        const rawRole = localStorage.getItem('userRole') || 'student';
+        const userRole = String(rawRole).trim().toLowerCase();
+
+        const authOverlay = document.getElementById('authOverlay');
+        const mainWrapper = document.getElementById('mainWrapper');
+
+        if (userRole === 'admin') {
+            authOverlay.style.setProperty('display', 'none', 'important');
+            mainWrapper.style.display = 'flex';
+        } else {
+            window.location.replace('dashboard.html');
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserId = user.uid;
+            } else {
+                window.location.replace('index.html');
+            }
+        });
+
+        let allUsers = [];
+        let currentTab = 'student';
+
+        // Listen for all users
+        onSnapshot(collection(db, "users"), (snapshot) => {
+            allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            if (currentUserId) {
+                const me = allUsers.find(u => u.id === currentUserId);
+                if (me && me.adminLevel) adminLevel = me.adminLevel;
+            }
+
+            if (adminLevel === 'secondary') {
+                document.getElementById('adminTabBtn').style.display = 'none';
+                if (currentTab === 'admin') switchTab('student');
+            } else {
+                document.getElementById('adminTabBtn').style.display = 'inline-block';
+            }
+
+            renderPendingTable();
+            renderApprovedTable();
+        });
+
+        // Live Search Listener
+        document.getElementById('userSearchBox').addEventListener('input', () => {
+            renderApprovedTable();
+        });
+
+        // Clear All Notifications Logic
+        window.clearAllNotifications = async () => {
+            if(!confirm("⚠️ Are you sure? This will delete ALL notification history for every user!")) return;
+            try {
+                const querySnapshot = await getDocs(collection(db, "notifications"));
+                const batch = writeBatch(db);
+                querySnapshot.forEach((d) => batch.delete(d.ref));
+                await batch.commit();
+                showToast("🧹 All notifications cleared!", true);
+            } catch (e) { 
+                showToast("❌ Action failed!", true); 
+            }
+        };
+
+        // Publish Notice & Sent To Notifications
+        window.publishNotice = async () => {
+            const noticeText = document.getElementById('noticeText').value.trim();
+            const noticeDeadline = document.getElementById('noticeDeadline').value; 
+
+            if (!noticeText) {
+                showToast("⚠️ Notice message cannot be empty!", true);
+                return;
+            }
+
+            try {
+                await setDoc(doc(db, "settings", "global_notice"), {
+                    message: noticeText,
+                    deadline: noticeDeadline || null,
+                    timestamp: Date.now()
+                });
+                
+                const formattedDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                
+                await addDoc(collection(db, "notifications"), {
+                    text: `📢 Notice: ${noticeText}`,
+                    date: formattedDate,
+                    timestamp: Date.now()
+                });
+                
+                showToast("📢 Notice Published Successfully!");
+                document.getElementById('noticeText').value = '';
+                document.getElementById('noticeDeadline').value = '';
+            } catch (error) {
+                console.error("Error publishing notice:", error);
+                showToast("❌ Failed to publish notice.", true);
+            }
+        };
+
+
+        function renderPendingTable() {
+            const tbody = document.getElementById('pendingTableBody');
+            
+            let pendingUsers = allUsers.filter(u => u.status === 'pending' && u.email !== SUPER_ADMIN_EMAIL && u.realEmail !== SUPER_ADMIN_EMAIL);
+            
+            if (adminLevel === 'secondary') {
+                pendingUsers = pendingUsers.filter(u => u.role !== 'admin');
+            }
+
+            document.getElementById('pendingCount').innerText = pendingUsers.length;
+
+            if (pendingUsers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; opacity:0.5;">No pending requests.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            pendingUsers.forEach(u => {
+                const date = u.createdAt ? new Date(u.createdAt.seconds * 1000).toLocaleDateString() : 'New';
+                const badgeClass = `role-badge role-${u.role}`;
+                
+                let actionHtml = '';
+                if (adminLevel === 'main' && u.role === 'admin') {
+                    actionHtml = `
+                        <button class="btn-action btn-accept" onclick="handleStatus('${u.id}', 'approved', 'secondary')">Accept Sec. Admin</button>
+                        <button class="btn-action btn-decline" onclick="removeUser('${u.id}', '${u.fullName}')">Decline & Remove</button>
+                    `;
+                } else {
+                    actionHtml = `
+                        <button class="btn-action btn-accept" onclick="handleStatus('${u.id}', 'approved')">Accept</button>
+                        <button class="btn-action btn-decline" onclick="removeUser('${u.id}', '${u.fullName}')">Decline & Remove</button>
+                    `;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><span class="${badgeClass}">${u.role}</span></td>
+                        <td>${u.studentId || u.staffId || 'N/A'}</td>
+                        <td><span class="clickable-name" onclick="viewUserDetails('${u.id}')">${u.fullName}</span></td>
+                        <td>${date}</td>
+                        <td class="action-btns">${actionHtml}</td>
+                    </tr>`;
+            });
+        }
+
+        window.switchTab = (role) => {
+            currentTab = role;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if(event) event.target.classList.add('active');
+            
+            document.getElementById('userSearchBox').value = ''; 
+            renderApprovedTable();
+        }
+
+        function renderApprovedTable() {
+            const tbody = document.getElementById('approvedTableBody');
+            const searchTerm = document.getElementById('userSearchBox').value.toLowerCase().trim();
+            
+            let users = allUsers.filter(u => u.status !== 'pending' && u.role === currentTab && u.email !== SUPER_ADMIN_EMAIL && u.realEmail !== SUPER_ADMIN_EMAIL);
+
+            if (searchTerm) {
+                users = users.filter(u => 
+                    (u.fullName && u.fullName.toLowerCase().includes(searchTerm)) ||
+                    (u.studentId && u.studentId.toLowerCase().includes(searchTerm)) ||
+                    (u.staffId && u.staffId.toLowerCase().includes(searchTerm)) ||
+                    (u.email && u.email.toLowerCase().includes(searchTerm)) ||
+                    (u.realEmail && u.realEmail.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; opacity:0.5;">No approved ${currentTab}s found matching your search.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            users.forEach(u => {
+                let statusBadge = `<span class="role-badge role-${u.role}">Active</span>`;
+                let actionBtns = '';
+
+                if (currentTab === 'admin') {
+                    if (u.adminLevel === 'main') {
+                        statusBadge = `<span class="role-badge role-main-admin">Main Admin</span>`;
+                        if (u.id === currentUserId) {
+                            actionBtns = `<span style="font-size:11px; color:var(--success); font-weight:700;">You</span>`;
+                        } else {
+                            actionBtns = `<span style="font-size:11px; opacity:0.6; font-weight:700;">Protected</span>`;
+                        }
+                    } else {
+                        statusBadge = `<span class="role-badge role-sec-admin">Secondary Admin</span>`;
+                        if (u.id === currentUserId) {
+                            actionBtns = `<span style="font-size:11px; color:var(--success); font-weight:700;">You</span>`;
+                        } else if (adminLevel === 'main') {
+                            actionBtns = `<button class="btn-action btn-remove" onclick="removeUser('${u.id}', '${u.fullName}')">Remove</button>`;
+                        } else {
+                            actionBtns = `<span style="font-size:11px; opacity:0.6; font-weight:700;">Protected</span>`;
+                        }
+                    }
+                } 
+                else {
+                    if (u.role === 'teacher' || u.role === 'student') {
+                        actionBtns += `<button class="btn-action btn-remove" onclick="removeUser('${u.id}', '${u.fullName}')">Remove</button>`;
+                    }
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${statusBadge}</td>
+                        <td style="font-weight:600;">${u.studentId || u.staffId || 'N/A'}</td>
+                        <td><span class="clickable-name" onclick="viewUserDetails('${u.id}')">${u.fullName}</span></td>
+                        <td>${u.realEmail || u.email || 'N/A'}</td>
+                        <td class="action-btns">${actionBtns}</td>
+                    </tr>`;
+            });
+        }
+
+        window.handleStatus = async (uid, newStatus, level = null) => {
+            try {
+                let payload = { status: newStatus };
+                if (newStatus === 'approved' && level) payload.adminLevel = level;
+
+                if (newStatus === 'suspended') {
+                    if(!confirm("Suspend this user for 30 days?")) return;
+                    const date = new Date();
+                    date.setDate(date.getDate() + 30);
+                    payload.suspendedUntil = date.getTime();
+                } else if (newStatus === 'approved') {
+                    payload.suspendedUntil = null;
+                }
+                
+                await updateDoc(doc(db, "users", uid), payload);
+                showToast(`✅ Status updated`);
+                closeModal();
+            } catch (e) {
+                showToast("❌ Action failed!", true);
+            }
+        };
+
+        window.removeUser = async (uid, name) => {
+            if(confirm(`🚨 Are you sure you want to permanently REMOVE ${name}?`)) {
+                try {
+                    await deleteDoc(doc(db, "users", uid));
+                    showToast("🚫 User Removed!", true);
+                    closeModal();
+                } catch (e) {
+                    showToast("❌ Delete failed!", true);
+                }
+            }
+        };
+
+        const modal = document.getElementById('userDetailsModal');
+        const modalContent = document.getElementById('modalContent');
+        const modalActions = document.getElementById('modalActions');
+
+        window.viewUserDetails = (uid) => {
+            const u = allUsers.find(user => user.id === uid);
+            if(!u) return;
+
+            let html = `
+                <div class="info-row"><span class="info-label">Full Name:</span> <span class="info-val">${u.fullName}</span></div>
+                <div class="info-row"><span class="info-label">Role:</span> <span class="info-val" style="text-transform:uppercase;">${u.role}</span></div>
+                <div class="info-row"><span class="info-label">ID / Staff ID:</span> <span class="info-val">${u.studentId || u.staffId || 'N/A'}</span></div>
+                <div class="info-row"><span class="info-label">Email:</span> <span class="info-val">${u.realEmail || u.email || 'N/A'}</span></div>
+                <div class="info-row"><span class="info-label">Contact:</span> <span class="info-val">${u.contact || 'N/A'}</span></div>
+            `;
+            if (u.role === 'student') {
+                html += `
+                    <div class="info-row"><span class="info-label">Session:</span> <span class="info-val">${u.session || 'N/A'}</span></div>
+                    <div class="info-row"><span class="info-label">Year / Sem:</span> <span class="info-val">${u.year} - ${u.semester}</span></div>
+                `;
+            }
+
+            modalContent.innerHTML = html;
+
+            if (u.status === 'pending') {
+                if (adminLevel === 'main' && u.role === 'admin') {
+                    modalActions.innerHTML = `
+                        <button class="btn-action btn-accept" style="padding:10px 20px;" onclick="handleStatus('${uid}', 'approved', 'secondary')">Accept Sec. Admin</button>
+                        <button class="btn-action btn-remove" style="padding:10px 20px;" onclick="removeUser('${uid}', '${u.fullName}')">Decline & Remove</button>
+                    `;
+                } else {
+                    modalActions.innerHTML = `
+                        <button class="btn-action btn-accept" style="padding:10px 20px;" onclick="handleStatus('${uid}', 'approved')">Accept Request</button>
+                        <button class="btn-action btn-remove" style="padding:10px 20px;" onclick="removeUser('${uid}', '${u.fullName}')">Decline & Remove</button>
+                    `;
+                }
+            } else {
+                modalActions.innerHTML = '';
+            }
+
+            modal.classList.add('show');
+        }
+        window.closeModal = () => { modal.classList.remove('show'); }
+
+        const teacherTableBody = document.getElementById('teacherTableBody');
+        onSnapshot(collection(db, "faculty"), (snapshot) => {
+            teacherTableBody.innerHTML = '';
+            if (snapshot.empty) {
+                teacherTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; opacity:0.5;">No manual profiles found.</td></tr>';
+                return;
+            }
+            snapshot.forEach((docSnap) => {
+                const t = docSnap.data();
+                teacherTableBody.innerHTML += `
+                    <tr>
+                        <td style="font-weight:700; color:var(--accent);">${t.staffId || 'N/A'}</td>
+                        <td style="font-weight:600;">${t.fullName} (${t.shortName})</td>
+                        <td>${t.dept}</td>
+                        <td class="action-btns">
+                            <button class="edit-btn" onclick="editTeacher('${docSnap.id}', '${t.staffId}', '${t.fullName}', '${t.shortName}', '${t.dept}', '${t.email}', '${t.phone || ''}')">Edit</button>
+                            <button class="delete-btn" onclick="deleteTeacher('${docSnap.id}', '${t.fullName}')">Remove</button>
+                        </td>
+                    </tr>`;
+            });
+        });
+
+        window.addTeacher = async () => { 
+            const tStaffId = document.getElementById('tStaffId').value.trim();
+            const tPhone = document.getElementById('tPhone').value.trim();
+            const tName = document.getElementById('tName').value.trim();
+            const tShort = document.getElementById('tShort').value.trim().toUpperCase();
+            const tDept = document.getElementById('tDept').value.trim();
+            const tEmail = document.getElementById('tEmail').value.trim();
+            
+            if(!tStaffId || !tName || !tShort) { showToast("⚠️ Fill required fields", true); return; }
+            
+            try {
+                await addDoc(collection(db, "faculty"), { 
+                    staffId: tStaffId, phone: tPhone, fullName: tName, shortName: tShort, dept: tDept, email: tEmail 
+                });
+                
+                const today = new Date();
+                const formattedDate = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); 
+                
+                await addDoc(collection(db, "notifications"), {
+                    text: `👨‍🏫 ${tName} added as a faculty member. You may evaluate him/her.`,
+                    date: formattedDate, timestamp: today.getTime() 
+                });
+                
+                showToast("✅ Profile Added & Notification Sent!");
+                document.querySelectorAll('.input-field').forEach(input => input.value = '');
+                
+            } catch(e) {
+                showToast("❌ Error adding profile", true);
+            }
+        };
+
+        window.editTeacher = (id, staffId, name, short, dept, email, phone) => {
+            document.getElementById('form-title').innerText = "Edit Faculty Profile";
+            document.getElementById('tStaffId').value = staffId;
+            document.getElementById('tPhone').value = phone;
+            document.getElementById('tName').value = name;
+            document.getElementById('tShort').value = short;
+            document.getElementById('tDept').value = dept;
+            document.getElementById('tEmail').value = email;
+            document.getElementById('editingDocId').value = id;
+
+            document.getElementById('addBtn').style.display = 'none';
+            document.getElementById('updateBtn').style.display = 'inline-block';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        };
+
+        window.updateTeacher = async () => {
+            const id = document.getElementById('editingDocId').value;
+            const tStaffId = document.getElementById('tStaffId').value.trim();
+            const tPhone = document.getElementById('tPhone').value.trim();
+            const tName = document.getElementById('tName').value.trim();
+            const tShort = document.getElementById('tShort').value.trim().toUpperCase();
+            const tDept = document.getElementById('tDept').value.trim();
+            const tEmail = document.getElementById('tEmail').value.trim();
+
+            try {
+                const teacherRef = doc(db, "faculty", id);
+                await updateDoc(teacherRef, { staffId: tStaffId, phone: tPhone, fullName: tName, shortName: tShort, dept: tDept, email: tEmail });
+                showToast("💾 Profile Updated!");
+                window.cancelEdit();
+            } catch (e) {
+                showToast("❌ Error updating profile", true);
+            }
+        };
+
+        window.cancelEdit = () => {
+            document.querySelectorAll('.input-field').forEach(input => input.value = '');
+            document.getElementById('form-title').innerText = "Add Non-Registered Faculty Profile";
+            document.getElementById('addBtn').style.display = 'inline-block';
+            document.getElementById('updateBtn').style.display = 'none';
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('editingDocId').value = "";
+        };
+
+        window.deleteTeacher = async (id, name) => {
+            if(confirm(`Remove manual profile for ${name}?`)) {
+                try {
+                    await deleteDoc(doc(db, "faculty", id));
+                    
+                    const formattedDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                    await addDoc(collection(db, "notifications"), {
+                        text: `❌ ${name} has been removed from the faculty list.`,
+                        date: formattedDate, 
+                        timestamp: Date.now() 
+                    });
+
+                    showToast("🗑️ Profile Removed & Notified!", true);
+                    if(document.getElementById('editingDocId').value === id) window.cancelEdit(); 
+                } catch (e) {
+                    showToast("❌ Delete failed!", true);
+                }
+            }
+        };
+
+        window.showToast = (msg, isError = false) => {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.background = isError ? 'var(--danger)' : 'var(--success)';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        };
+
+        const themeToggle = document.getElementById('theme-toggle');
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => { localStorage.clear(); window.location.replace('index.html'); });
+        });
+
+        document.getElementById('hamburgerBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+        // 🚀 CLOSE SIDEBAR ON OUTSIDE CLICK (MOBILE VIEW FIX)
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            
+            // Check if the sidebar is open and the click happened outside the sidebar and hamburger button
+            if (sidebar && hamburgerBtn && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+        (function() {
+            const notifBtn = document.getElementById('notifBtn');
+            const notifDropdown = document.getElementById('notifDropdown');
+            const notifBadge = document.getElementById('notifBadge');
+            const notifList = document.getElementById('notifList');
+            
+            let currentNotifCount = 0; 
+
+            if (notifBtn && notifDropdown) {
+                notifBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notifDropdown.classList.toggle('show');
+                    
+                    if (notifBadge) {
+                        notifBadge.style.display = 'none'; 
+                    }
+                    
+                    localStorage.setItem('userReadNotifCount', currentNotifCount.toString());
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+                        notifDropdown.classList.remove('show');
+                    }
+                });
+            }
+            
+            if (notifList && typeof db !== 'undefined') {
+                onSnapshot(collection(db, "notifications"), (snapshot) => {
+                    if (snapshot.empty) {
+                        notifList.innerHTML = '<div style="opacity:0.5; padding:10px; text-align:center;">No new notifications</div>';
+                        return;
+                    }
+
+                    currentNotifCount = snapshot.size;
+
+                    let notifsArray = [];
+                    snapshot.forEach(doc => {
+                        notifsArray.push(doc.data());
+                    });
+                    
+                    notifsArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                    notifList.innerHTML = '';
+                    notifsArray.forEach(n => {
+                        notifList.innerHTML += `
+                            <div class="notif-item">
+                                <span class="notif-date">${n.date || ''}</span>
+                                ${n.text || n.message || ''}
+                            </div>`;
+                    });
+                    
+                    const readCount = parseInt(localStorage.getItem('userReadNotifCount')) || 0;
+
+                    if (currentNotifCount > readCount) {
+                        if (notifBadge && !notifDropdown.classList.contains('show')) {
+                            notifBadge.style.display = 'block'; 
+                        }
+                    } else {
+                        if (notifBadge) {
+                            notifBadge.style.display = 'none'; 
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

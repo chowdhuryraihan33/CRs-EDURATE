@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDURATE | Log Out</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: background 0.3s, color 0.3s; }
+        :root { --bg: #e0e5ec; --text: #2c3e50; --text-muted: #7f8c8d; --shadow-light: #ffffff; --shadow-dark: #a3b1c6; --accent: #3498db; --danger: #e74c3c; --sidebar-w: 280px; }
+        .dark-mode { --bg: #2d3436; --text: #dfe6e9; --text-muted: #b2bec3; --shadow-light: #3d4446; --shadow-dark: #1e2223; --accent: #f1c40f; }
+
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; position: relative; }
+
+        .sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); background: var(--bg); height: 100vh; padding: 40px 20px; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.1); transition: transform 0.4s ease; z-index: 1000; }
+        .logo-3d { font-size: 32px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 50px; text-align: center; text-shadow: 2px 2px 0px var(--shadow-light), 4px 4px 0px var(--shadow-dark); }
+        .nav-menu { list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 5px; }
+        .nav-menu li { padding: 15px 20px; margin-bottom: 10px; border-radius: 15px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 12px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); transition: all 0.3s ease; color: var(--text);}
+        .nav-menu li:hover, .nav-menu li.active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); color: var(--accent); }
+        .logout-item { margin-top: auto; color: var(--danger) !important; box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light) !important; }
+
+        .main-content { flex: 1; padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; position: relative; }
+
+        .top-icons { position: absolute; top: 30px; right: 30px; width: 100%; max-width: 1100px; display: flex; justify-content: flex-end; gap: 20px; align-items: center; z-index: 10; }
+        .hamburger { display: none; margin-right: auto; cursor: pointer; color: var(--text); } 
+        .hamburger svg { width: 30px; height: 30px; }
+        .icon-btn { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; background: var(--bg); box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light); transition: 0.3s; position: relative;}
+        .icon-btn:active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); transform: scale(0.95); }
+
+        .logout-card { width: 90%; max-width: 500px; background: var(--bg); padding: 50px 40px; border-radius: 35px; text-align: center; box-shadow: 15px 15px 30px var(--shadow-dark), -15px -15px 30px var(--shadow-light); display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .logout-icon { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; color: var(--danger); background: var(--bg); box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light); margin-bottom: 10px; }
+        .logout-card h2 { font-size: 26px; font-weight: 800; color: var(--text); }
+        .logout-card p { font-size: 15px; font-weight: 500; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+
+        .action-buttons { display: flex; gap: 20px; width: 100%; }
+        .btn { flex: 1; padding: 15px; border-radius: 15px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; background: var(--bg); transition: all 0.3s ease; }
+        .btn-cancel { color: var(--text); box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light); }
+        .btn-cancel:hover { color: var(--accent); transform: translateY(-2px); }
+        .btn-cancel:active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); transform: translateY(0); }
+        .btn-confirm { color: var(--danger); box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light); }
+        .btn-confirm:hover { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
+
+        .notif-dropdown { display: none; position: absolute; top: 60px; right: 0; width: 320px; max-height: 400px; overflow-y: auto; background: var(--bg); padding: 20px; border-radius: 20px; box-shadow: 10px 10px 30px rgba(0,0,0,0.2), inset 2px 2px 5px var(--shadow-light); z-index: 1000; text-align: left; }
+        .notif-dropdown.show { display: block; }
+        .notif-item { padding: 12px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; font-weight: 600; color: var(--text); }
+        .notif-date { font-size: 11px; opacity: 0.6; display: block; margin-top: 4px; }
+        .badge { display: none; position: absolute; top: 12px; right: 14px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); box-shadow: 10px 0 20px rgba(0,0,0,0.3); }
+            .sidebar.open { transform: translateX(0); }
+            .hamburger { display: block; }
+            .top-icons { justify-content: space-between; padding: 20px; top: 0; right: 0; }
+            .logout-card { padding: 40px 25px; border-radius: 25px; }
+            .action-buttons { flex-direction: column; gap: 15px; }
+            .notif-dropdown { right: -50px; }
+        }
+    </style>
+</head>
+<body id="body">
+
+    <div class="sidebar" id="sidebar">
+        <div class="logo-3d">EDURATE</div>
+        <ul class="nav-menu">
+            <li onclick="location.href='dashboard.html'">🏠 Dashboard</li>
+            <li class="student-only" onclick="location.href='evaluation.html'">📊 Evaluation</li>
+            <li onclick="location.href='faculty.html'">👨‍🏫 Faculty Members</li>
+            <li onclick="location.href='profile.html'">👤 My Profile</li>
+            <li onclick="location.href='setting.html'">⚙️ Setting</li>
+            <li class="admin-only" onclick="location.href='admin.html'">🔐 Admin Panel</li>
+            <li class="active logout-item">🚪 Log out</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-icons">
+            <div class="hamburger" id="hamburgerBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+            <div style="display: flex; gap: 20px; position: relative;">
+                <div class="icon-btn" id="theme-toggle">🌙</div>
+                <div class="icon-btn" id="notifBtn">
+                    🔔<span class="badge" id="notifBadge"></span>
+                </div>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <h4 style="margin-bottom:10px; padding-bottom:10px; border-bottom:2px solid rgba(0,0,0,0.05);">Notifications</h4>
+                    <div id="notifList">Loading notifications...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="logout-card">
+            <div class="logout-icon">🚪</div>
+            <h2>Ready to Leave?</h2>
+            <p>You are about to log out of your EDURATE account. Are you sure you want to proceed?</p>
+            
+            <div class="action-buttons">
+                <button class="btn btn-cancel" onclick="history.back()">Cancel</button>
+                <button class="btn btn-confirm" onclick="processLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBj4d6Bcpwe6UYZIqmuhCW_HHzQmpm8bYY",
+            authDomain: "edurate-74300.firebaseapp.com",
+            projectId: "edurate-74300",
+            storageBucket: "edurate-74300.firebasestorage.app",
+            messagingSenderId: "616936292339",
+            appId: "1:616936292339:web:61a50822fad7e71b6f1c86",
+            measurementId: "G-JDF60JSMQT"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 🚀 ১. Sidebar Security Check
+        const rawRole = localStorage.getItem('userRole') || 'student';
+        const userRole = String(rawRole).trim().toLowerCase();
+
+        document.querySelectorAll('.student-only').forEach(el => {
+            el.style.display = (userRole === 'student') ? 'flex' : 'none';
+        });
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = (userRole === 'admin') ? 'flex' : 'none';
+        });
+
+        // 🚀 ২. Real Firebase Logout Logic with "No-Back" Security
+        window.processLogout = () => {
+            signOut(auth).then(() => {
+                localStorage.clear(); // লোকাল স্টোরেজ ক্লিয়ার
+                
+                // 🚀 ব্রাউজার হিস্ট্রি রিপ্লেস করা হচ্ছে যাতে ব্যাক বাটন কাজ না করে
+                window.location.replace('index.html'); 
+            }).catch((error) => {
+                console.error("Sign out error", error);
+                alert("Failed to log out. Please try again.");
+            });
+        };
+
+        // 🚀 Redirect if not logged in (Extra Layer of Security)
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                // কেউ লগআউট অবস্থায় থাকলে জোর করে ঢুকতে চাইলে আটকে দেবে
+                window.location.replace('index.html');
+            }
+        });
+
+        // 🚀 ৩. Theme and Sidebar UI
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const sidebar = document.getElementById('sidebar');
+        hamburgerBtn.addEventListener('click', () => { sidebar.classList.toggle('open'); });
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.getElementById('body');
+        if (localStorage.getItem('theme') === 'dark') { body.classList.add('dark-mode'); themeToggle.textContent = '☀️'; }
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
+        });
+
+      // ==========================================
+        // GLOBAL REAL-TIME NOTIFICATION SYSTEM (WITH SEEN TRACKING)
+        // ==========================================
+        (function() {
+            const notifBtn = document.getElementById('notifBtn');
+            const notifDropdown = document.getElementById('notifDropdown');
+            const notifBadge = document.getElementById('notifBadge');
+            const notifList = document.getElementById('notifList');
+            
+            // Variable to track the latest notification timestamp
+            let currentMaxTimestamp = 0; 
+
+            // 1. Toggle dropdown visibility and hide the red badge
+            if (notifBtn && notifDropdown) {
+                notifBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notifDropdown.classList.toggle('show');
+                    if (notifBadge) notifBadge.style.display = 'none'; 
+                    
+                    // Save the latest timestamp to localStorage when dropdown is opened
+                    if (currentMaxTimestamp > 0) {
+                        localStorage.setItem('lastSeenNotifTime', currentMaxTimestamp.toString());
+                    }
+                });
+
+                // 2. Close dropdown when clicking anywhere outside of it
+                document.addEventListener('click', (e) => {
+                    if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+                        notifDropdown.classList.remove('show');
+                    }
+                });
+            }
+            
+            // 3. Fetch real-time notifications from Firestore
+            if (notifList && typeof db !== 'undefined') {
+                onSnapshot(collection(db, "notifications"), (snapshot) => {
+                    if (snapshot.empty) {
+                        notifList.innerHTML = '<div style="opacity:0.5; padding:10px; text-align:center;">No new notifications</div>';
+                        return;
+                    }
+
+                    let notifsArray = [];
+                    currentMaxTimestamp = 0; // Reset timestamp
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        notifsArray.push(data);
+                        
+                        // Find the maximum timestamp from the fetched notifications
+                        if (data.timestamp > currentMaxTimestamp) {
+                            currentMaxTimestamp = data.timestamp;
+                        }
+                    });
+                    
+                    // Sort array to display the most recent notification first
+                    notifsArray.sort((a, b) => b.timestamp - a.timestamp);
+
+                    notifList.innerHTML = '';
+                    notifsArray.forEach(n => {
+                        notifList.innerHTML += `
+                            <div class="notif-item">
+                                <span class="notif-date">${n.date}</span>
+                                ${n.text}
+                            </div>`;
+                    });
+                    
+                    // Check the last seen timestamp stored in the browser
+                    const lastSeen = parseInt(localStorage.getItem('lastSeenNotifTime')) || 0;
+
+                    // Show the red dot ONLY if new data arrives (current timestamp > last seen)
+                    if (currentMaxTimestamp > lastSeen && notifBadge && notifDropdown && !notifDropdown.classList.contains('show')) {
+                        notifBadge.style.display = 'block'; 
+                    } else if (notifBadge) {
+                        notifBadge.style.display = 'none'; // Keep it hidden otherwise
+                    }
+                }, (error) => {
+                    console.error("Error loading notifications: ", error);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDURATE | Premium 3D Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: background 0.3s, color 0.3s; }
+        :root { --bg: #e0e5ec; --text: #2c3e50; --shadow-light: #ffffff; --shadow-dark: #a3b1c6; --accent: #3498db; --sidebar-bg: #e0e5ec; --sidebar-w: 280px; --danger: #e74c3c; --success: #2ecc71; --warning: #f39c12; }
+        .dark-mode { --bg: #2d3436; --text: #dfe6e9; --shadow-light: #3d4446; --shadow-dark: #1e2223; --accent: #f1c40f; --sidebar-bg: #2d3436; }
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        
+        .sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); background: var(--sidebar-bg); height: 100vh; padding: 40px 20px; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.1); transition: transform 0.4s ease; z-index: 1000; }
+        .logo-3d { font-size: 32px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 50px; text-align: center; text-shadow: 2px 2px 0px var(--shadow-light), 4px 4px 0px var(--shadow-dark); }
+        
+        .nav-menu { list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 5px; }
+        .nav-menu li { padding: 15px 20px; margin-bottom: 10px; border-radius: 15px; cursor: pointer; color: var(--text); font-weight: 600; display: flex; align-items: center; gap: 12px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); }
+        .nav-menu li:hover, .nav-menu li.active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); color: var(--accent); }
+        
+        .logout-item { margin-top: auto !important; margin-bottom: 0 !important; color: var(--danger) !important; }
+        
+        .main-content { flex: 1; padding: 30px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; width: 100%; position: relative;}
+        .top-icons { width: 100%; max-width: 1100px; display: flex; justify-content: flex-end; gap: 20px; margin-bottom: 25px; align-items: center; }
+        .hamburger { display: none; margin-right: auto; cursor: pointer; color: var(--text); }
+        .hamburger svg { width: 30px; height: 30px; }
+        
+        .icon-btn { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light); background: var(--bg); position: relative;}
+        .icon-btn:active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); transform: scale(0.95); }
+
+        .countdown-container { text-align: center; margin-bottom: 20px; display: none; }
+        .countdown-container.active { display: block; }
+        .countdown-box { display: inline-flex; gap: 15px; background: var(--bg); padding: 15px 30px; border-radius: 20px; box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light); }
+        .cd-item { display: flex; flex-direction: column; align-items: center; }
+        .cd-val { font-size: 24px; font-weight: 800; color: var(--danger); line-height: 1; }
+        .cd-label { font-size: 10px; font-weight: 700; color: var(--text); opacity: 0.6; text-transform: uppercase; margin-top: 5px; }
+        
+        .main-card { width: 95%; max-width: 1100px; background: var(--bg); padding: 40px; border-radius: 40px; box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light); text-align: center; position: relative;}
+        .welcome-header h1 { font-size: 32px; margin-bottom: 10px; color: var(--text); }
+        .welcome-header span { color: var(--accent); }
+        
+        .stat-cards { display: flex; justify-content: center; gap: 25px; margin: 35px 0; flex-wrap: wrap; }
+        .stat-card { background: var(--bg); padding: 25px; border-radius: 25px; flex: 1; min-width: 150px; box-shadow: 6px 6px 15px var(--shadow-dark), -6px -6px 15px var(--shadow-light); }
+        .stat-card p { font-size: 12px; color: var(--text); opacity: 0.7; margin-bottom: 5px; font-weight: 700; }
+        .stat-card h3 { font-size: 26px; color: var(--accent); }
+        
+        .pending-info { color: #e67e22; font-weight: 700; margin-bottom: 25px; display: block; }
+        
+        .start-btn { display: inline-block; background: var(--bg); color: var(--accent); border: none; padding: 16px 50px; border-radius: 15px; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light); margin: 0 auto 35px auto; transition: 0.3s; }
+        .start-btn:active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); transform: scale(0.98); }
+        
+        .graph-container { width: 100%; background: var(--bg); padding: 25px; border-radius: 30px; box-shadow: inset 6px 6px 15px var(--shadow-dark), inset -6px -6px 15px var(--shadow-light); height: 350px; position: relative; }
+        .graph-container h3 { text-align: left; margin-bottom: 20px; font-size: 18px; color: var(--accent); }
+        
+        .download-btn { background: var(--bg); color: var(--success); border: none; padding: 8px 15px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light); transition: 0.3s;}
+        .download-btn:active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); transform: scale(0.95);}
+        
+        .student-id-tag { display: inline-block; background: var(--bg); padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); margin: 5px; }
+        .tag-success { color: var(--success); }
+        .tag-danger { color: var(--danger); }
+
+        .notif-dropdown { display: none; position: absolute; top: 60px; right: 0; width: 320px; max-height: 400px; overflow-y: auto; background: var(--bg); padding: 20px; border-radius: 20px; box-shadow: 10px 10px 30px rgba(0,0,0,0.2); z-index: 1000; text-align: left; }
+        .notif-dropdown.show { display: block; }
+        .notif-item { padding: 12px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4;}
+        .notif-date { font-size: 11px; opacity: 0.6; display: block; margin-bottom: 4px; color: var(--accent); font-weight: 800;}
+        .badge { display: none; position: absolute; top: 12px; right: 14px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; }
+        
+        #toast { position: fixed; bottom: 30px; right: 30px; color: #fff; padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 14.5px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); pointer-events: none; z-index: 9999; }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) { .sidebar { position: fixed; transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .hamburger { display: block; } .cd-val {font-size: 18px;} }
+    </style>
+</head>
+<body id="body">
+
+    <div class="sidebar" id="sidebar">
+        <div class="logo-3d">EDURATE</div>
+        <ul class="nav-menu">
+            <li class="active" onclick="location.href='dashboard.html'">🏠 Dashboard</li>
+            <li class="student-only" onclick="location.href='evaluation.html'">📊 Evaluation</li>
+            <li onclick="location.href='faculty.html'">👨‍🏫 Faculty Members</li>
+            <li onclick="location.href='profile.html'">👤 My Profile</li>
+            <li onclick="location.href='setting.html'">⚙️ Setting</li>
+            <li class="admin-only" style="display:none;" onclick="location.href='admin.html'">🔐 Admin Panel</li>
+            <li class="logout-item" id="logoutBtn">🚪 Log out</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-icons">
+            <div class="hamburger" id="hamburgerBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+            <div style="display: flex; gap: 20px; position: relative;">
+                <div class="icon-btn" id="theme-toggle">🌙</div>
+                <div class="icon-btn" id="notifBtn">
+                    🔔<span class="badge" id="notifBadge"></span>
+                </div>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <h4 style="margin-bottom:10px; padding-bottom:10px; border-bottom:2px solid rgba(0,0,0,0.05);">Notifications</h4>
+                    <div id="notifList">Loading notifications...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📢 STATIC NOTICE BOX -->
+        <div id="noticeContainer" style="display: none; width: 100%; max-width: 1100px; margin-bottom: 20px; border-radius: 12px; background: rgba(52, 152, 219, 0.1); border-left: 6px solid var(--accent); padding: 15px 20px; box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light); text-align: left;">
+            <strong style="color: var(--accent); font-size: 12px; letter-spacing: 1px; display: block; margin-bottom: 5px;">📢 LATEST NOTICE</strong>
+            <div id="noticeScrollText" style="font-weight: 700; font-size: 15px; color: var(--text);"></div>
+        </div>
+
+        <div class="main-card">
+            
+            <div class="countdown-container" id="countdownWrapper">
+                <p style="font-weight: 700; font-size: 13px; opacity: 0.6; margin-bottom: 10px;">Time left to submit evaluation:</p>
+                <div class="countdown-box">
+                    <div class="cd-item"><span class="cd-val" id="cdDays">00</span><span class="cd-label">Days</span></div>
+                    <div class="cd-item"><span style="font-weight: 800; opacity: 0.5;">:</span></div>
+                    <div class="cd-item"><span class="cd-val" id="cdHours">00</span><span class="cd-label">Hours</span></div>
+                    <div class="cd-item"><span style="font-weight: 800; opacity: 0.5;">:</span></div>
+                    <div class="cd-item"><span class="cd-val" id="cdMins">00</span><span class="cd-label">Mins</span></div>
+                    <div class="cd-item"><span style="font-weight: 800; opacity: 0.5;">:</span></div>
+                    <div class="cd-item"><span class="cd-val" id="cdSecs" style="color:var(--accent);">00</span><span class="cd-label">Secs</span></div>
+                </div>
+            </div>
+
+            <div class="welcome-header">
+                <h1 id="welcomeTitle">Hello, <span>User</span>! 👋</h1>
+                <p id="welcomeDesc">Welcome back to EDURATE software system.</p>
+            </div>
+
+            <div class="student-view" id="statsContainer">
+                <div class="stat-cards">
+                    <div class="stat-card"><p>TOTAL RATED</p><h3 id="stat-total">0</h3></div>
+                    <div class="stat-card"><p>PENDING</p><h3 id="stat-pending" style="color: #e67e22;">0</h3></div>
+                    <div class="stat-card"><p>AVG SCORE</p><h3 id="stat-avg" style="color: #27ae60;">0.0</h3></div>
+                </div>
+                <span class="pending-info" id="pending-text">⚠️ You have 0 pending teacher reviews.</span>
+                <button class="start-btn student-only" onclick="location.href='evaluation.html'">Start Evaluating</button>
+            </div>
+
+            <div class="graph-container">
+                <h3>Evaluation Summary ::</h3>
+                <button class="download-btn admin-only" style="display:none; position: absolute; top: 20px; right: 25px;" onclick="downloadSummary()">📥 Download Summary</button>
+                <canvas id="evalChart"></canvas>
+            </div>
+        </div>
+
+        <div class="main-card admin-only" id="studentListCard" style="display:none; margin-top: 30px; text-align: left; padding: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h3 style="color: var(--text); font-size: 18px; border-left: 5px solid var(--accent); padding-left: 10px;">📋 Evaluation Status Monitor</h3>
+                <button class="download-btn" onclick="downloadStudentLists()">📥 Download Report</button>
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--success);">
+                    ✅ Completed All Ratings 
+                    <span id="completedCount" style="background: var(--success); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 5px;">0</span>
+                </h4>
+                <div id="completedStudentsList" style="display: flex; flex-wrap: wrap; padding: 15px; background: rgba(46, 204, 113, 0.05); border-radius: 15px; min-height: 60px;">
+                    <span style="font-size: 12px; opacity: 0.5;">Loading data...</span>
+                </div>
+            </div>
+
+            <div>
+                <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--danger);">
+                    ⏳ Pending Ratings 
+                    <span id="pendingListCount" style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 5px;">0</span>
+                </h4>
+                <div id="pendingStudentsList" style="display: flex; flex-wrap: wrap; padding: 15px; background: rgba(231, 76, 60, 0.05); border-radius: 15px; min-height: 60px;">
+                    <span style="font-size: 12px; opacity: 0.5;">Loading data...</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast">Message goes here</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, doc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBj4d6Bcpwe6UYZIqmuhCW_HHzQmpm8bYY",
+            authDomain: "edurate-74300.firebaseapp.com",
+            projectId: "edurate-74300",
+            storageBucket: "edurate-74300.firebasestorage.app",
+            messagingSenderId: "616936292339",
+            appId: "1:616936292339:web:61a50822fad7e71b6f1c86",
+            measurementId: "G-JDF60JSMQT"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.globalFacultySummary = []; 
+        window.globalCompletedStudents = []; 
+        window.globalPendingStudents = [];
+        let countdownInterval;
+
+        const name = localStorage.getItem('userName') || 'User';
+        const rawRole = localStorage.getItem('userRole') || 'student';
+        const role = String(rawRole).trim().toLowerCase();
+        const email = localStorage.getItem('userEmail');
+
+        document.getElementById('welcomeTitle').innerHTML = `Hello, <span>${name}</span>! 👋`;
+
+        if (role !== 'student') {
+            const hideStyle = document.createElement('style');
+            hideStyle.innerHTML = '#noticeContainer, #countdownWrapper { display: none !important; }';
+            document.head.appendChild(hideStyle);
+        }
+
+        document.querySelectorAll('.student-only').forEach(el => {
+            el.style.display = (role === 'student') ? (el.tagName === 'LI' ? 'flex' : 'inline-block') : 'none';
+        });
+        
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = (role === 'admin') ? (el.tagName === 'LI' ? 'flex' : 'block') : 'none';
+        });
+
+        const statsContainer = document.getElementById('statsContainer');
+
+        if(role === 'student') {
+            statsContainer.style.display = 'block';
+        } else if(role === 'teacher') {
+            statsContainer.style.display = 'none'; 
+        } else if(role === 'admin') {
+            statsContainer.style.display = 'block'; 
+            document.querySelector('.stat-card:nth-child(1) p').innerText = "TOTAL REVIEWS";
+            document.querySelector('.stat-card:nth-child(2) p').innerText = "SYSTEM PENDING";
+            document.querySelector('.stat-card:nth-child(3) p').innerText = "OVERALL AVG";
+        }
+
+        if (role === 'student') {
+            onSnapshot(doc(db, "settings", "global_notice"), (docSnap) => {
+                const noticeContainer = document.getElementById('noticeContainer');
+                const noticeScrollText = document.getElementById('noticeScrollText');
+                const countdownWrapper = document.getElementById('countdownWrapper');
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const msg = data.message || data.notice || data.text || data.noticeText || "";
+                    
+                    if (msg && msg.trim() !== '') {
+                        noticeContainer.style.display = 'block';
+                        noticeScrollText.innerText = msg;
+                    } else {
+                        noticeContainer.style.display = 'none';
+                    }
+
+                    if (data.deadline) {
+                        countdownWrapper.classList.add('active');
+                        startCountdown(data.deadline);
+                    } else {
+                        countdownWrapper.classList.remove('active');
+                        clearInterval(countdownInterval);
+                    }
+                } else {
+                    noticeContainer.style.display = 'none';
+                    countdownWrapper.classList.remove('active');
+                }
+            });
+        }
+
+        function startCountdown(deadlineStr) {
+            clearInterval(countdownInterval);
+            const deadlineDate = new Date(deadlineStr).getTime();
+
+            countdownInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = deadlineDate - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdownWrapper').innerHTML = '<p style="color:var(--danger); font-weight:800;">EVALUATION DEADLINE HAS PASSED!</p>';
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById("cdDays").innerText = days < 10 ? '0'+days : days;
+                document.getElementById("cdHours").innerText = hours < 10 ? '0'+hours : hours;
+                document.getElementById("cdMins").innerText = minutes < 10 ? '0'+minutes : minutes;
+                document.getElementById("cdSecs").innerText = seconds < 10 ? '0'+seconds : seconds;
+            }, 1000);
+        }
+
+        const facultyRef = collection(db, "faculty");
+        const ratingsRef = collection(db, "ratings");
+        const studentsRef = query(collection(db, "users"), where("role", "==", "student"));
+
+        onSnapshot(facultyRef, (facultySnap) => {
+            onSnapshot(ratingsRef, (ratingsSnap) => {
+                onSnapshot(studentsRef, (studentsSnap) => {
+                    
+                    let totalFaculty = facultySnap.size;
+                    let totalRatings = ratingsSnap.size;
+                    let sumAllRatings = 0;
+                    
+                    let facultyData = {};
+                    facultySnap.forEach(doc => {
+                        const d = doc.data();
+                        facultyData[d.shortName] = { fullName: d.fullName, total: 0, count: 0 };
+                    });
+
+                    ratingsSnap.forEach(doc => {
+                        const r = doc.data();
+                        sumAllRatings += parseFloat(r.rating);
+                        if(facultyData[r.teacherShortName]) {
+                            facultyData[r.teacherShortName].total += parseFloat(r.rating);
+                            facultyData[r.teacherShortName].count += 1;
+                        }
+                    });
+
+                    const labels = Object.keys(facultyData);
+                    window.globalFacultySummary = []; 
+                    const chartData = labels.map(label => {
+                        const f = facultyData[label];
+                        const avg = f.count > 0 ? (f.total / f.count).toFixed(1) : 0.0;
+                        window.globalFacultySummary.push(`${f.fullName} (${label}): ${avg}/5.0`);
+                        return avg;
+                    });
+
+                    // 🚀 FIXED: 100% Accurate Sync between Top Stats and Bottom Monitor
+                    if(role === 'admin') {
+                        let completedStudents = [];
+                        let pendingStudents = [];
+                        let actualPendingEvaluations = 0;
+
+                        if (totalFaculty === 0) {
+                            document.getElementById('completedStudentsList').innerHTML = '<span style="font-size: 12px; opacity: 0.5;">No faculty added yet.</span>';
+                            document.getElementById('pendingStudentsList').innerHTML = '<span style="font-size: 12px; opacity: 0.5;">No faculty added yet.</span>';
+                            document.getElementById('stat-pending').innerText = 0;
+                            document.getElementById('pending-text').innerText = `⚠️ System has 0 pending evaluations.`;
+                        } else {
+                            studentsSnap.forEach(uDoc => {
+                                const uData = uDoc.data();
+                                if (uData.status !== 'approved') return;
+
+                                const studentEmail = uData.realEmail || uData.email;
+                                const studentId = uData.studentId || "No ID";
+
+                                let myRatingCount = 0;
+                                ratingsSnap.forEach(rDoc => {
+                                    const r = rDoc.data();
+                                    if(r.studentEmail === studentEmail && facultyData[r.teacherShortName]) {
+                                        myRatingCount++;
+                                    }
+                                });
+
+                                if (myRatingCount >= totalFaculty) {
+                                    completedStudents.push(studentId);
+                                } else {
+                                    pendingStudents.push(studentId);
+                                    // একদম নিখুঁত হিসাব: কয়টা টিচারের রিভিউ বাকি আছে
+                                    actualPendingEvaluations += (totalFaculty - myRatingCount); 
+                                }
+                            });
+
+                            document.getElementById('stat-total').innerText = totalRatings;
+                            document.getElementById('stat-avg').innerText = totalRatings > 0 ? (sumAllRatings / totalRatings).toFixed(1) : "0.0";
+                            
+                            // 🚀 উপরের বক্সে আপডেট করা হচ্ছে 
+                            document.getElementById('stat-pending').innerText = actualPendingEvaluations;
+                            document.getElementById('pending-text').innerText = `⚠️ System has ${actualPendingEvaluations} pending evaluations.`;
+
+                            document.getElementById('completedCount').innerText = completedStudents.length;
+                            document.getElementById('pendingListCount').innerText = pendingStudents.length;
+
+                            const compContainer = document.getElementById('completedStudentsList');
+                            compContainer.innerHTML = '';
+                            if(completedStudents.length === 0) compContainer.innerHTML = '<span style="font-size: 12px; opacity: 0.5;">No students completed yet.</span>';
+                            else completedStudents.forEach(id => compContainer.innerHTML += `<span class="student-id-tag tag-success">✅ ID: ${id}</span>`);
+
+                            const pendContainer = document.getElementById('pendingStudentsList');
+                            pendContainer.innerHTML = '';
+                            if(pendingStudents.length === 0) pendContainer.innerHTML = '<span style="font-size: 12px; opacity: 0.5;">No pending students.</span>';
+                            else pendingStudents.forEach(id => pendContainer.innerHTML += `<span class="student-id-tag tag-danger">⏳ ID: ${id}</span>`);
+
+                            window.globalCompletedStudents = completedStudents;
+                            window.globalPendingStudents = pendingStudents;
+                        }
+                    
+                    } else if(role === 'student') {
+                        let ratedTeachers = new Set();
+                        let mySum = 0;
+                        
+                        ratingsSnap.forEach(rDoc => {
+                            const r = rDoc.data();
+                            if (r.studentEmail === email && facultyData[r.teacherShortName]) {
+                                if(!ratedTeachers.has(r.teacherShortName)) {
+                                    ratedTeachers.add(r.teacherShortName);
+                                    mySum += parseFloat(r.rating);
+                                }
+                            }
+                        });
+
+                        let myValidRatings = ratedTeachers.size;
+                        let myPending = totalFaculty > myValidRatings ? totalFaculty - myValidRatings : 0;
+                        
+                        document.getElementById('stat-total').innerText = myValidRatings;
+                        document.getElementById('stat-pending').innerText = myPending;
+                        document.getElementById('stat-avg').innerText = myValidRatings > 0 ? (mySum / myValidRatings).toFixed(1) : "0.0";
+                        
+                        document.getElementById('pending-text').innerText = `⚠️ You have ${myPending} pending teacher reviews.`;
+                    }
+
+                    updateChart(labels.length > 0 ? labels : ['No Data'], chartData.length > 0 ? chartData : [0]);
+                });
+            });
+        });
+
+        let myChart;
+        function updateChart(labels, data) {
+            const ctx = document.getElementById('evalChart').getContext('2d');
+            const isDark = document.body.classList.contains('dark-mode');
+            const textColor = isDark ? '#dfe6e9' : '#2c3e50';
+            
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels, 
+                    datasets: [{ 
+                        label: 'Avg Rating', 
+                        data: data,
+                        backgroundColor: isDark ? '#f1c40f' : '#3498db', 
+                        borderRadius: 8 
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { 
+                        y: { beginAtZero: true, max: 5, ticks: { color: textColor }, grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' } },
+                        x: { ticks: { color: textColor }, grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        window.downloadSummary = () => {
+            let content = `EDURATE SYSTEM - OVERALL RATING SUMMARY\n`;
+            content += `===========================================\n`;
+            content += `Generated on: ${new Date().toLocaleString()}\n\n`;
+            
+            content += `[ TOTAL STATISTICS ]\n`;
+            content += `- Total Reviews Submitted: ${document.getElementById('stat-total').innerText}\n`;
+            content += `- System Pending Reviews: ${document.getElementById('stat-pending').innerText}\n`;
+            content += `- Overall Average Rating: ${document.getElementById('stat-avg').innerText} / 5.0\n\n`;
+            
+            content += `[ FACULTY PERFORMANCE ]\n`;
+            if (window.globalFacultySummary.length > 0) {
+                window.globalFacultySummary.forEach((teacherData, index) => {
+                    content += `${index + 1}. ${teacherData}\n`;
+                });
+            } else {
+                content += `No faculty evaluation data available.\n`;
+            }
+
+            content += `\n===========================================\n`;
+            content += `* Confidential Report for Admin Use Only *`;
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `EDURATE_Summary_${Date.now()}.txt`;
+            link.click();
+        };
+
+        window.downloadStudentLists = () => {
+            let content = `EDURATE - EVALUATION STATUS REPORT\n`;
+            content += `=====================================\n`;
+            content += `Date: ${new Date().toLocaleString()}\n\n`;
+            
+            content += `✅ COMPLETED EVALUATIONS (${window.globalCompletedStudents.length})\n`;
+            content += `-------------------------------------\n`;
+            if (window.globalCompletedStudents.length === 0) content += `None\n`;
+            window.globalCompletedStudents.forEach((id, i) => content += `${i+1}. Student ID: ${id}\n`);
+            content += `\n`;
+
+            content += `⏳ PENDING EVALUATIONS (${window.globalPendingStudents.length})\n`;
+            content += `-------------------------------------\n`;
+            if (window.globalPendingStudents.length === 0) content += `None\n`;
+            window.globalPendingStudents.forEach((id, i) => content += `${i+1}. Student ID: ${id}\n`);
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Evaluation_Status_Report_${Date.now()}.txt`;
+            link.click();
+            
+            showToast("📥 Report download started!");
+        };
+
+        window.showToast = (message, isError = false) => {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.background = isError ? 'var(--danger)' : 'var(--success)';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        };
+
+        const themeToggle = document.getElementById('theme-toggle');
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('hamburgerBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // Close sidebar on outside click
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            if (sidebar && hamburgerBtn && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+
+        (function() {
+            const notifBtn = document.getElementById('notifBtn');
+            const notifDropdown = document.getElementById('notifDropdown');
+            const notifBadge = document.getElementById('notifBadge');
+            const notifList = document.getElementById('notifList');
+            
+            let currentNotifCount = 0; 
+
+            if (notifBtn && notifDropdown) {
+                notifBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notifDropdown.classList.toggle('show');
+                    
+                    if (notifBadge) {
+                        notifBadge.style.display = 'none'; 
+                    }
+                    
+                    localStorage.setItem('userReadNotifCount', currentNotifCount.toString());
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+                        notifDropdown.classList.remove('show');
+                    }
+                });
+            }
+            
+            if (notifList && typeof db !== 'undefined') {
+                onSnapshot(collection(db, "notifications"), (snapshot) => {
+                    if (snapshot.empty) {
+                        notifList.innerHTML = '<div style="opacity:0.5; padding:10px; text-align:center;">No new notifications</div>';
+                        return;
+                    }
+
+                    currentNotifCount = snapshot.size;
+
+                    let notifsArray = [];
+                    snapshot.forEach(doc => {
+                        notifsArray.push(doc.data());
+                    });
+                    
+                    notifsArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                    notifList.innerHTML = '';
+                    notifsArray.forEach(n => {
+                        notifList.innerHTML += `
+                            <div class="notif-item">
+                                <span class="notif-date">${n.date || ''}</span>
+                                ${n.text || n.message || ''}
+                            </div>`;
+                    });
+                    
+                    const readCount = parseInt(localStorage.getItem('userReadNotifCount')) || 0;
+
+                    if (currentNotifCount > readCount) {
+                        if (notifBadge && !notifDropdown.classList.contains('show')) {
+                            notifBadge.style.display = 'block'; 
+                        }
+                    } else {
+                        if (notifBadge) {
+                            notifBadge.style.display = 'none'; 
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

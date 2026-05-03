@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDURATE | Create Your Ultimate Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* আপনার অরিজিনাল স্টাইলগুলো ১০০% হুবহু এখানে থাকবে */
+        :root {
+            --accent: #f1c40f;
+            --royal-btn: linear-gradient(145deg, #4834d4, #686de0);
+            --input-bg: #e0e5ec;
+            --shadow-dark: #a3b1c6;
+            --shadow-light: #ffffff;
+            --trans-speed: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            --req: #ff7675;
+            --glow-color: rgba(72, 52, 212, 0.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background: url('campus.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.15); 
+            z-index: 0;
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .page-receiving-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+            z-index: 9999; opacity: 1; pointer-events: none;
+            animation: fadeOutOverlay 0.6s ease-in-out forwards;
+        }
+        @keyframes fadeOutOverlay { to { opacity: 0; display: none; } }
+
+        .page-leave-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+            z-index: 9999; opacity: 0; pointer-events: none; display: none; transition: opacity 0.6s ease-in-out; 
+        }
+
+        .master-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 26px;
+            padding: 15px 30px; 
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+            color: #fff;
+            position: relative; 
+            z-index: 10;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            animation: cardEntrance 0.8s var(--trans-speed) forwards;
+            opacity: 0;
+        }
+
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: scale(0.9) translateY(40px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .logo-img {
+            max-width: 125px; 
+            height: auto;
+            margin-bottom: 2px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            animation: floatLogo 3s ease-in-out infinite;
+        }
+
+        @keyframes floatLogo {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+            100% { transform: translateY(0px); }
+        }
+
+        h2 { font-weight: 800; font-size: 21px; letter-spacing: 1px; margin-bottom: 0px; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        .subtitle-container { display: flex; justify-content: center; align-items: center; height: 18px; margin-bottom: 10px; }
+        .subtitle { color: var(--accent); font-size: 12.5px; font-weight: 600; letter-spacing: 0.5px; }
+        .cursor { display: inline-block; width: 2px; height: 13px; background-color: var(--accent); margin-left: 2px; animation: blink 0.7s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .role-selector {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 12px; border-radius: 12px; margin-bottom: 10px; 
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.3);
+            transition: 0.3s ease;
+        }
+
+        select {
+            background: #fff; border: 1px solid transparent; padding: 3px 8px;
+            border-radius: 8px; font-weight: 700; outline: none; cursor: pointer; font-size: 12.5px;
+            color: #333; transition: all 0.3s ease;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .input-group { margin-bottom: 8px; position: relative; } 
+
+        input {
+            width: 100%; padding: 9px 38px 9px 15px; border-radius: 10px; border: 1px solid transparent;
+            background: var(--input-bg);
+            outline: none; font-size: 13px; font-weight: 600; color: #2d3436;
+            box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            background: #ffffff; 
+            border: 1px solid var(--glow-color);
+            box-shadow: 0 0 15px var(--glow-color), inset 1px 1px 3px var(--shadow-dark);
+            transform: translateY(-2px);
+        }
+
+        .eye-icon {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            cursor: pointer; opacity: 0.5; z-index: 10; color: #333; display: flex; align-items: center;
+            transition: 0.3s;
+        }
+        .eye-icon:hover { opacity: 1; transform: translateY(-50%) scale(1.2); color: var(--royal-btn); }
+        .eye-icon svg { width: 18px; height: 18px; }
+
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+        
+        .grid-layout select {
+            width: 100%; height: 36px; border-radius: 10px; border: none; padding: 0 8px;
+            font-weight: 600; background: var(--input-bg); color: #333; font-size: 12.5px;
+            box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+            transition: 0.3s ease;
+        }
+        .grid-layout select:focus { 
+            box-shadow: 0 0 15px var(--glow-color); 
+            background: #fff; 
+            transform: translateY(-2px); 
+        }
+
+        #msg-box {
+            font-size: 12px; font-weight: 600; padding: 8px; border-radius: 10px;
+            margin-bottom: 8px; display: none; text-align: center;
+            background: rgba(0,0,0,0.4);
+        }
+
+        .register-btn {
+            width: 100%; padding: 11px; border-radius: 12px; border: none; 
+            background: var(--royal-btn); background-size: 200% auto;
+            color: #fff; font-weight: 800; font-size: 14.5px; text-transform: uppercase;
+            cursor: pointer; margin-top: 5px; 
+            box-shadow: 0 8px 20px rgba(72, 52, 212, 0.4), 0 4px 0px #2c1a9e, 5px 5px 15px rgba(0,0,0,0.3);
+            position: relative; top: 0; transition: all 0.3s; overflow: hidden;
+        }
+
+        .register-btn:hover {
+            background: linear-gradient(145deg, #686de0, #4834d4);
+            transform: translateY(-3px); 
+            box-shadow: 0 15px 30px var(--glow-color), 0 6px 0px #2c1a9e;
+        }
+
+        .register-btn:active { top: 4px; box-shadow: 0 1px 0px #2c1a9e; filter: brightness(0.9); }
+        
+        .register-btn::after {
+            content: ''; position: absolute; top: -50%; left: -60%; width: 20%; height: 200%;
+            background: rgba(255, 255, 255, 0.2); transform: rotate(30deg); transition: 0.5s;
+        }
+        .register-btn:hover::after { left: 120%; }
+
+        .login-link { margin-top: 10px; font-size: 12px; }
+        .login-link a { 
+            color: var(--accent); text-decoration: none; font-weight: 800; 
+            padding: 3px 8px; border-radius: 8px; transition: 0.3s;
+            display: inline-block; cursor: pointer;
+        }
+        .login-link a:hover { 
+            background: rgba(241, 196, 15, 0.15);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        #student-section { overflow: hidden; max-height: 0; opacity: 0; transition: all 0.4s ease; }
+        #student-section.show { max-height: 180px; opacity: 1; margin-bottom: 8px; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="page-receiving-overlay"></div>
+    <div class="page-leave-overlay" id="overlay"></div>
+
+    <div class="master-card" id="mainCard">
+        <img src="logo.png" alt="EduRate Logo" class="logo-img" onerror="this.style.display='none'">
+        <h2>Create Account</h2>
+        
+        <div class="subtitle-container">
+            <span class="subtitle" id="typewriter-text"></span><span class="cursor"></span>
+        </div>
+
+        <div class="role-selector">
+            <span style="font-weight: 600; font-size: 13px;">Register as:</span>
+            <select id="role-select" onchange="toggleFormLayout()">
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+
+        <div class="input-group"><input type="text" id="full-name" placeholder="Full Name *"></div>
+        <div class="input-group"><input type="text" id="id-input" placeholder="Student ID *"></div>
+
+        <div id="student-section" class="show">
+            <div class="input-group"><input type="text" id="session" placeholder="Session *"></div>
+            <div class="grid-layout">
+                <select id="y-select">
+                    <option value="" disabled selected>Year *</option>
+                    <option>1st Year</option><option>2nd Year</option>
+                    <option>3rd Year</option><option>4th Year</option>
+                </select>
+                <select id="s-select">
+                    <option value="" disabled selected>Semester *</option>
+                    <option>1st Sem</option><option>2nd Sem</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="input-group"><input type="email" id="email" placeholder="Email *"></div>
+        <div class="input-group"><input type="text" id="contact" placeholder="Contact *"></div>
+        
+        <div class="input-group">
+            <input type="password" id="pass1" placeholder="Create Password (min 8 chars) *">
+            <span class="eye-icon" onclick="togglePass('pass1', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+        </div>
+        <div class="input-group">
+            <input type="password" id="pass2" placeholder="Confirm Password *">
+            <span class="eye-icon" onclick="togglePass('pass2', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+        </div>
+
+        <div id="msg-box"></div>
+
+        <button class="register-btn" id="reg-btn" onclick="handleRegister()">Register Now</button>
+        
+        <p class="login-link">Already have an account? <a onclick="pageTransition('index.html')">Login here</a></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // 🚀 Added signOut import to prevent auto-login
+        import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBj4d6Bcpwe6UYZIqmuhCW_HHzQmpm8bYY",
+            authDomain: "edurate-74300.firebaseapp.com",
+            projectId: "edurate-74300",
+            storageBucket: "edurate-74300.firebasestorage.app",
+            messagingSenderId: "616936292339",
+            appId: "1:616936292339:web:61a50822fad7e71b6f1c86",
+            measurementId: "G-JDF60JSMQT"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.handleRegister = async () => {
+            const name = document.getElementById('full-name').value.trim();
+            const userId = document.getElementById('id-input').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const contact = document.getElementById('contact').value.trim();
+            const p1 = document.getElementById('pass1').value;
+            const p2 = document.getElementById('pass2').value;
+            const role = document.getElementById('role-select').value;
+            const regBtn = document.getElementById('reg-btn');
+
+            // বেসিক ভ্যালিডেশন
+            if(!name || !userId || !email || !contact || !p1 || !p2) {
+                showMsg("⚠ Please fill out all required fields!", "rgba(231, 76, 60, 0.2)", "#ffcccc");
+                return;
+            }
+            if(p1 !== p2) {
+                showMsg("⚠ Passwords do not match!", "rgba(231, 76, 60, 0.2)", "#ffcccc");
+                return;
+            }
+            if(p1.length < 8) {
+                showMsg("⚠ Password must be at least 8 digits!", "rgba(231, 76, 60, 0.2)", "#ffcccc");
+                return;
+            }
+
+            // বাটন ডিজেবল ও মেসেজ
+            regBtn.disabled = true;
+            showMsg("⚙ Processing your request...", "rgba(52, 152, 219, 0.2)", "#dff9fb");
+
+            const fakeEmail = `${userId.toLowerCase()}@edurate.com`;
+
+            try {
+                // ১. ফায়ারবেস অথেন্টিকেশন
+                const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, p1);
+                const user = userCredential.user;
+
+                // ২. ফায়ারস্টোর ডাটাবেসে তথ্য সেভ (স্ট্যাটাস পেন্ডিং সহ)
+                const userData = {
+                    uid: user.uid,
+                    fullName: name,
+                    studentId: userId,
+                    realEmail: email,
+                    contact: contact,
+                    role: role,
+                    status: "pending", // 🚀 NEW: User needs admin approval to log in
+                    createdAt: new Date()
+                };
+
+                if(role === 'student') {
+                    userData.session = document.getElementById('session').value;
+                    userData.year = document.getElementById('y-select').value;
+                    userData.semester = document.getElementById('s-select').value;
+                }
+
+                await setDoc(doc(db, "users", user.uid), userData);
+
+                // 🚀 NEW: Force Sign Out immediately so they don't bypass approval
+                await signOut(auth);
+
+                // সফল মেসেজ দেখানো
+                showMsg("✅ Registration submitted! Please wait for Admin approval.", "rgba(46, 204, 113, 0.2)", "#ccffcc");
+                
+                setTimeout(() => { pageTransition('index.html'); }, 2500);
+
+            } catch (error) {
+                console.error(error);
+                showMsg("❌ " + error.message.replace("Firebase:", ""), "rgba(231, 76, 60, 0.2)", "#ffcccc");
+                regBtn.disabled = false;
+            }
+        };
+
+        // --- আপনার অরিজিনাল এনিমেশন ফাংশনগুলো ---
+        window.toggleFormLayout = () => {
+            const role = document.getElementById('role-select').value;
+            const studentSec = document.getElementById('student-section');
+            const idInput = document.getElementById('id-input');
+            if(role === 'student') {
+                studentSec.classList.add('show');
+                idInput.placeholder = "Student ID *";
+            } else {
+                studentSec.classList.remove('show');
+                idInput.placeholder = (role === 'teacher') ? "Staff ID *" : "Admin ID *";
+            }
+        };
+
+        window.togglePass = (id, btn) => {
+            const el = document.getElementById(id);
+            const openEye = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+            const closedEye = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+            el.type = (el.type === "password") ? "text" : "password";
+            btn.innerHTML = (el.type === "text") ? closedEye : openEye;
+        };
+
+        window.pageTransition = (url) => {
+            const overlay = document.getElementById('overlay');
+            const card = document.getElementById('mainCard');
+            card.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            card.style.transform = 'scale(0.95) translateY(-30px)';
+            card.style.opacity = '0';
+            overlay.style.display = 'block';
+            setTimeout(() => { overlay.style.opacity = '1'; }, 50);
+            setTimeout(() => { window.location.href = url; }, 550);
+        };
+
+        function showMsg(text, bg, color) {
+            const msg = document.getElementById('msg-box');
+            msg.innerHTML = text;
+            msg.style.display = 'block';
+            msg.style.background = bg;
+            msg.style.color = color;
+        }
+
+        const text = "Empower Education through Feedback";
+        let i = 0, isDeleting = false;
+        function typeWriter() {
+            const textElement = document.getElementById("typewriter-text");
+            if (!isDeleting && i <= text.length) {
+                textElement.innerHTML = text.substring(0, i);
+                i++; setTimeout(typeWriter, 100);
+            } else if (isDeleting && i >= 0) {
+                textElement.innerHTML = text.substring(0, i);
+                i--; setTimeout(typeWriter, 50);
+            } else if (i > text.length) {
+                isDeleting = true; setTimeout(typeWriter, 2000);
+            } else if (i < 0) {
+                isDeleting = false; setTimeout(typeWriter, 500);
+            }
+        }
+        window.onload = typeWriter;
+    </script>
+</body>
+</html>

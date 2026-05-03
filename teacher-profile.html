@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDURATE | Teacher Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: background 0.3s, color 0.3s; }
+        :root { --bg: #e0e5ec; --text: #2c3e50; --shadow-light: #ffffff; --shadow-dark: #a3b1c6; --accent: #3498db; --sidebar-w: 280px; --danger: #e74c3c; }
+        .dark-mode { --bg: #2d3436; --text: #dfe6e9; --shadow-light: #3d4446; --shadow-dark: #1e2223; --accent: #f1c40f; }
+
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+        .sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); background: var(--bg); height: 100vh; padding: 40px 20px; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,0.1); transition: transform 0.4s ease; z-index: 1000; }
+        .logo-3d { font-size: 32px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 50px; text-align: center; text-shadow: 2px 2px 0px var(--shadow-light), 4px 4px 0px var(--shadow-dark); }
+        
+        .nav-menu { list-style: none; flex-grow: 1; display: flex; flex-direction: column; gap: 5px; }
+        .nav-menu li { padding: 15px 20px; margin-bottom: 10px; border-radius: 15px; cursor: pointer; color: var(--text); font-weight: 600; display: flex; align-items: center; gap: 12px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); }
+        .nav-menu li:hover, .nav-menu li.active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); color: var(--accent); }
+        
+        .logout-item { margin-top: auto !important; margin-bottom: 0 !important; color: var(--danger) !important; }
+
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; width: 100%;}
+        .top-icons { width: 100%; max-width: 1100px; display: flex; justify-content: flex-end; gap: 20px; margin-bottom: 20px; align-items: center; }
+        .hamburger { display: none; margin-right: auto; cursor: pointer; color: var(--text); } 
+        .hamburger svg { width: 30px; height: 30px; }
+        
+        .icon-btn { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; background: var(--bg); box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light); position: relative;}
+        .icon-btn:active { box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); transform: scale(0.95); }
+
+        .back-nav { width: 100%; max-width: 1100px; margin-bottom: 15px; text-align: left; }
+        .back-nav button { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: 700; font-size: 15px; transition: 0.3s; padding: 5px 10px; border-radius: 10px;}
+        .back-nav button:hover { background: rgba(52, 152, 219, 0.1); }
+
+        .profile-container { width: 100%; max-width: 1100px; background: var(--bg); padding: 25px 35px; border-radius: 25px; box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light); margin-bottom: 25px; display: flex; align-items: center; gap: 35px; flex-wrap: wrap;}
+        .profile-header { display: flex; align-items: center; gap: 20px; }
+        .prof-large { width: 80px; height: 80px; background: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: var(--accent); box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light); }
+        .profile-header h1 { font-size: 20px; color: var(--text); line-height: 1.2;}
+        
+        .info-list { display: flex; flex-wrap: wrap; gap: 15px 30px; border-left: 2px solid rgba(0,0,0,0.1); padding-left: 35px; justify-content: flex-start; }
+        .dark-mode .info-list { border-left-color: rgba(255,255,255,0.1); }
+        .info-list p { font-weight: 600; font-size: 13.5px; margin: 0; min-width: 200px;}
+        .info-list span { color: var(--accent); font-weight: 700; margin-left: 8px; }
+
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; width: 100%; max-width: 1100px; margin-bottom: 30px; }
+        .cat-card { background: var(--bg); padding: 25px 20px; border-radius: 20px; box-shadow: 6px 6px 15px var(--shadow-dark), -6px -6px 15px var(--shadow-light); text-align: center; }
+        .cat-card h3 { font-size: 13px; opacity: 0.7; margin-bottom: 10px; color: var(--text); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
+        .cat-card .score { font-size: 24px; font-weight: 800; color: var(--accent); }
+        .cat-card .out-of { font-size: 14px; opacity: 0.6; font-weight: 600; margin-left: 5px; color: var(--text);}
+
+        .feedback-section { width: 100%; max-width: 1100px; flex: 1; display: flex; flex-direction: column;}
+        .section-title { font-size: 18px; font-weight: 800; margin-bottom: 15px; border-left: 5px solid var(--accent); padding-left: 12px; }
+        
+        #feedback-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; width: 100%; padding-bottom: 20px;}
+        
+        .feedback-card { background: var(--bg); padding: 20px; border-radius: 18px; box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light); display: flex; flex-direction: column; justify-content: space-between;}
+        .anonymous-user { font-size: 12px; font-weight: 700; color: var(--accent); opacity: 0.8; margin-bottom: 8px; display: block; }
+        .feedback-card p { font-size: 13.5px; line-height: 1.5; color: var(--text); flex: 1;}
+        .stars { color: #f1c40f; margin-top: 10px; font-size: 16px; letter-spacing: 2px;}
+
+        /* 🚀 NEW: Specific Category Comments Styling */
+        .specific-comment { font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 8px 12px; border-radius: 8px; margin-top: 8px; border-left: 3px solid var(--accent); color: var(--text); line-height: 1.4; }
+        .dark-mode .specific-comment { background: rgba(255,255,255,0.05); }
+
+        .notif-dropdown { display: none; position: absolute; top: 60px; right: 0; width: 340px; max-height: 400px; overflow-y: auto; background: var(--bg); padding: 20px; border-radius: 20px; box-shadow: 10px 10px 30px rgba(0,0,0,0.2), inset 2px 2px 5px var(--shadow-light); z-index: 1000; text-align: left; }
+        .notif-dropdown.show { display: block; }
+        .notif-item { padding: 12px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
+        .notif-date { font-size: 11px; opacity: 0.6; display: block; margin-bottom: 4px; color: var(--accent); font-weight: 800;}
+        .badge { display: none; position: absolute; top: 12px; right: 14px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); box-shadow: 10px 0 20px rgba(0,0,0,0.3); }
+            .sidebar.open { transform: translateX(0); }
+            .hamburger { display: block; }
+            .top-icons { justify-content: space-between; margin-bottom: 15px; } 
+            .main-content { padding: 15px; }
+            .profile-container { flex-direction: column; align-items: flex-start; padding: 20px; gap: 15px;}
+            .info-list { border-left: none; padding-left: 0; gap: 10px;}
+            #feedback-list { grid-template-columns: 1fr; }
+            .notif-dropdown { right: -50px; width: 280px;}
+            .category-grid { grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px;}
+        }
+    </style>
+</head>
+<body id="body">
+
+    <div id="authOverlay" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: var(--bg); z-index: 99999; flex-direction: column; align-items:center; justify-content:center;">
+        <h1 style="color: var(--danger); font-size: 30px; font-weight: 800;">Access Denied! 🚫</h1>
+        <p id="overlayMessage" style="margin-top: 10px; font-weight: 600;"></p>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="logo-3d">EDURATE</div>
+        <ul class="nav-menu">
+            <li onclick="location.href='dashboard.html'">🏠 Dashboard</li>
+            <li class="student-only" onclick="location.href='evaluation.html'">📊 Evaluation</li>
+            <li class="active" onclick="location.href='faculty.html'">👨‍🏫 Faculty Members</li>
+            <li onclick="location.href='profile.html'">👤 My Profile</li>
+            <li onclick="location.href='setting.html'">⚙️ Setting</li>
+            <li class="admin-only" style="display:none;" onclick="location.href='admin.html'">🔐 Admin Panel</li>
+            <li class="logout-item" id="logoutBtn">🚪 Log out</li>
+        </ul>
+    </div>
+
+    <div class="main-content" id="mainWrapper" style="display: none;">
+        
+        <div class="top-icons">
+            <div class="hamburger" id="hamburgerBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+            <div style="display: flex; gap: 20px; position: relative;">
+                <div class="icon-btn" id="theme-toggle">🌙</div>
+                <div class="icon-btn" id="notifBtn">
+                    🔔<span class="badge" id="notifBadge"></span>
+                </div>
+                <div class="notif-dropdown" id="notifDropdown">
+                    <h4 style="margin-bottom:10px; padding-bottom:10px; border-bottom:2px solid rgba(0,0,0,0.05);">Notifications</h4>
+                    <div id="notifList">Loading notifications...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="back-nav">
+            <button onclick="location.href='faculty.html'">← Back to Faculty</button>
+        </div>
+
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="prof-large" id="t-short">RC</div>
+                <div>
+                    <h1 id="t-name">Teacher Name</h1>
+                </div>
+            </div>
+            <div class="info-list">
+                <p>Staff ID: <span id="t-staffid">N/A</span></p>
+                <p>Course: <span id="t-dept">N/A</span></p>
+                <p>Phone: <span id="t-phone">N/A</span></p>
+                <p>Email: <span id="t-email">teacher@univ.edu</span></p>
+            </div>
+        </div>
+
+        <div class="category-grid">
+            <div class="cat-card">
+                <h3>Overall Avg Rating</h3>
+                <div class="score"><span id="score-overall">0.0</span><span class="out-of">out of 5</span></div>
+            </div>
+            <div class="cat-card">
+                <h3>Avg Teaching Skill</h3>
+                <div class="score"><span id="score-teaching">0.0</span><span class="out-of">out of 5</span></div>
+            </div>
+            <div class="cat-card">
+                <h3>Avg Punctuality</h3>
+                <div class="score"><span id="score-punctuality">0.0</span><span class="out-of">out of 5</span></div>
+            </div>
+            <div class="cat-card">
+                <h3>Avg Behavior Rate</h3>
+                <div class="score"><span id="score-behavior">0.0</span><span class="out-of">out of 5</span></div>
+            </div>
+        </div>
+
+        <div class="feedback-section">
+            <h2 class="section-title">Student Feedbacks</h2>
+            <div id="feedback-list"></div>
+        </div>
+    </div>
+
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBj4d6Bcpwe6UYZIqmuhCW_HHzQmpm8bYY",
+        authDomain: "edurate-74300.firebaseapp.com",
+        projectId: "edurate-74300",
+        storageBucket: "edurate-74300.firebasestorage.app",
+        messagingSenderId: "616936292339",
+        appId: "1:616936292339:web:61a50822fad7e71b6f1c86",
+        measurementId: "G-JDF60JSMQT"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const rawRole = localStorage.getItem('userRole') || 'student';
+    const userRole = rawRole.trim().toLowerCase(); 
+    const currentUserEmail = localStorage.getItem('userEmail') || ''; 
+
+    const params = new URLSearchParams(window.location.search);
+    const profileEmail = params.get('email');
+    const teacherShort = params.get('short'); 
+    const staffIdParam = params.get('staffId') || 'N/A';
+    const phoneParam = params.get('phone') || 'N/A';
+
+    let hasAccess = false;
+    if (userRole === 'admin') hasAccess = true; 
+    else if (userRole === 'teacher' && currentUserEmail === profileEmail) hasAccess = true;
+
+    if (!hasAccess) {
+        document.getElementById('authOverlay').style.display = 'flex';
+        document.getElementById('overlayMessage').innerText = (userRole === 'student') 
+            ? "Students are not allowed to view full profiles." 
+            : "Teachers can only view their own profile.";
+        setTimeout(() => { window.location.href = 'faculty.html'; }, 2000);
+    } else {
+        document.getElementById('mainWrapper').style.display = 'flex';
+        if (params.has('name')) {
+            document.getElementById('t-name').innerText = params.get('name') + " (" + teacherShort + ")";
+            document.getElementById('t-short').innerText = teacherShort;
+            document.getElementById('t-dept').innerText = params.get('dept');
+            document.getElementById('t-email').innerText = profileEmail;
+            document.getElementById('t-staffid').innerText = staffIdParam;
+            document.getElementById('t-phone').innerText = phoneParam;
+        }
+        loadTeacherFeedbacks(teacherShort);
+    }
+
+    document.querySelectorAll('.student-only').forEach(el => {
+        el.style.display = (userRole === 'student') ? 'flex' : 'none';
+    });
+    document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = (userRole === 'admin') ? 'flex' : 'none';
+    });
+
+    async function loadTeacherFeedbacks(shortName) {
+        const feedbackContainer = document.getElementById('feedback-list');
+        try {
+            const q = query(collection(db, "ratings"), where("teacherShortName", "==", shortName));
+            const querySnapshot = await getDocs(q);
+            
+            let totalRating = 0, count = 0;
+            let tSum = 0, pSum = 0, bSum = 0, catCount = 0;
+
+            feedbackContainer.innerHTML = '';
+            if (querySnapshot.empty) {
+                feedbackContainer.innerHTML = '<p style="opacity:0.6; font-weight:600;">No feedbacks yet.</p>';
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                totalRating += parseFloat(data.rating);
+                count++;
+
+                if (data.teachingScore !== undefined) {
+                    tSum += parseFloat(data.teachingScore);
+                    pSum += parseFloat(data.punctualityScore);
+                    bSum += parseFloat(data.behaviorScore);
+                    catCount++;
+                }
+
+                // 🚀 NEW: Generating HTML for Specific Category Comments (1-star or 5-stars)
+                let specificCommentsHtml = "";
+                
+                if (data.teachingComment) {
+                    specificCommentsHtml += `<div class="specific-comment"><strong>Teaching (${data.teachingScore}★):</strong> "${data.teachingComment}"</div>`;
+                }
+                if (data.punctualityComment) {
+                    specificCommentsHtml += `<div class="specific-comment"><strong>Punctuality (${data.punctualityScore}★):</strong> "${data.punctualityComment}"</div>`;
+                }
+                if (data.behaviorComment) {
+                    specificCommentsHtml += `<div class="specific-comment"><strong>Behavior (${data.behaviorScore}★):</strong> "${data.behaviorComment}"</div>`;
+                }
+
+                const stars = "★".repeat(Math.round(data.rating)) + "☆".repeat(5 - Math.round(data.rating));
+                
+                feedbackContainer.innerHTML += `
+                    <div class="feedback-card">
+                        <span class="anonymous-user">👤 Anonymous Student</span>
+                        <p style="margin-bottom: 5px;">"${data.comment || 'No overall comment provided.'}"</p>
+                        ${specificCommentsHtml}
+                        <div class="stars">${stars}</div>
+                    </div>`;
+            });
+
+            document.getElementById('score-overall').innerText = count > 0 ? (totalRating / count).toFixed(1) : "0.0";
+            document.getElementById('score-teaching').innerText = catCount > 0 ? (tSum / catCount).toFixed(1) : "0.0";
+            document.getElementById('score-punctuality').innerText = catCount > 0 ? (pSum / catCount).toFixed(1) : "0.0";
+            document.getElementById('score-behavior').innerText = catCount > 0 ? (bSum / catCount).toFixed(1) : "0.0";
+
+        } catch (e) { console.error("Error loading feedbacks:", e); }
+    }
+
+    const themeToggle = document.getElementById('theme-toggle');
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        themeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'index.html';
+    });
+
+    document.getElementById('hamburgerBtn').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+    });
+
+       // 🚀 CLOSE SIDEBAR ON OUTSIDE CLICK (MOBILE VIEW FIX)
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            
+            // Check if the sidebar is open and the click happened outside the sidebar and hamburger button
+            if (sidebar && hamburgerBtn && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+
+    (function() {
+        const notifBtn = document.getElementById('notifBtn'), notifDropdown = document.getElementById('notifDropdown'),
+              notifBadge = document.getElementById('notifBadge'), notifList = document.getElementById('notifList');
+        let currentMaxTimestamp = 0; 
+        if (notifBtn && notifDropdown) {
+            notifBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); notifDropdown.classList.toggle('show');
+                if (notifBadge) notifBadge.style.display = 'none'; 
+                if (currentMaxTimestamp > 0) localStorage.setItem('lastSeenNotifTime', currentMaxTimestamp.toString());
+            });
+            document.addEventListener('click', (e) => { if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) notifDropdown.classList.remove('show'); });
+        }
+        if (notifList && typeof db !== 'undefined') {
+            onSnapshot(collection(db, "notifications"), (snapshot) => {
+                if (snapshot.empty) { notifList.innerHTML = '<div style="opacity:0.5; padding:10px; text-align:center;">No new notifications</div>'; return; }
+                let notifsArray = []; currentMaxTimestamp = 0; 
+                snapshot.forEach(doc => { const data = doc.data(); notifsArray.push(data); if (data.timestamp > currentMaxTimestamp) currentMaxTimestamp = data.timestamp; });
+                notifsArray.sort((a, b) => b.timestamp - a.timestamp);
+                notifList.innerHTML = '';
+                notifsArray.forEach(n => { notifList.innerHTML += `<div class="notif-item"><span class="notif-date">${n.date}</span>${n.text}</div>`; });
+                const lastSeen = parseInt(localStorage.getItem('lastSeenNotifTime')) || 0;
+                if (currentMaxTimestamp > lastSeen && notifBadge && !notifDropdown.classList.contains('show')) notifBadge.style.display = 'block'; 
+                else if (notifBadge) notifBadge.style.display = 'none'; 
+            }, (error) => console.error("Notification Error:", error));
+        }
+    })();
+</script>
+</body>
+</html>
