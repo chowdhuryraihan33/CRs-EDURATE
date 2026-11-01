@@ -304,8 +304,24 @@
             submitBtn.disabled = true;
             submitBtn.innerText = "Analyzing with AI Guardrail...";
 
-           try {
+            try {
                 let aiAnalysis = null;
+
+                // ইনপুট আপত্তিকর হলে ফ্রন্টএন্ডেই সাথে সাথে আটকে দেবে
+                const combinedText = `${comment || ''} ${tComment || ''} ${pComment || ''} ${bComment || ''}`.toLowerCase();
+                const instantBlockedWords = [
+                    "fuck", "shit", "bitch", "bastard", "asshole", "dick", "cunt",
+                    "worthless", "incompetent", "clown", "scam", "fraud",
+                    "baler", "bokacoda", "choda", "magi", "harami", "khankir",
+                    "চুদা", "মাগির", "খানকির", "বাল", "মাদারচোদ", "হারামি", "বোকাচোদা"
+                ];
+                
+                if (instantBlockedWords.some(w => combinedText.includes(w))) {
+                    showToast("⚠️ Review Required: Academic Policy Violation: Inappropriate, abusive, or offensive remarks are strictly prohibited.", true);
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Submit Evaluation";
+                    return;
+                }
 
                 try {
                     const aiRes = await fetch('/api/analyze', {
@@ -345,7 +361,7 @@
                     return;
                 }
 
-                // এআই দ্বারা অনুমোদিত হওয়ার পরই কেবল ফায়ারবেসে ডেটা জমা হবে
+                // এআই দ্বারা অনুমোদিত হওয়ার পরই কেবল ফায়ারবেসে ডেটা জমা হবে
                 await addDoc(collection(db, "ratings"), {
                     studentEmail: userEmail,
                     teacherFullName: currentTeacherFullName,

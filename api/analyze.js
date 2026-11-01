@@ -7,19 +7,22 @@ export default async function handler(req, res) {
   const { comment, tComment, pComment, bComment, teachingRating, punctualityRating, behaviorRating } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
-  const allComments = `
-Overall Feedback: "${comment || 'None'}"
-Teaching Feedback (${teachingRating}★): "${tComment || 'None'}"
-Punctuality Feedback (${punctualityRating}★): "${pComment || 'None'}"
-Behavior Feedback (${behaviorRating}★): "${bComment || 'None'}"
-`.trim();
+  // সব কমেন্টকে ছোট হাতের অক্ষরে রূপান্তর
+  const rawText = `${comment || ''} ${tComment || ''} ${pComment || ''} ${bComment || ''}`.toLowerCase();
 
-  // ১. প্রাথমিক ফিল্টার: ইংরেজি ও বাংলা সাধারণ অশ্লীল/অপমানজনক শব্দ
-  const badWordsRegex = /\b(fuck|shit|bitch|bastard|asshole|dick|cunt|worthless|incompetent|clown|scam|fraud|bokacoda|baler|choda|magi|madarchod|harami|khankir|চুদা|মাগির|খানকির|বাল)\b/i;
-  if (badWordsRegex.test(allComments)) {
+  // হার্ডকোডেড ব্লক লিস্ট (সরাসরি ধরা পড়বে)
+  const forbiddenWords = [
+    "fuck", "shit", "bitch", "bastard", "asshole", "dick", "cunt", 
+    "worthless", "incompetent", "clown", "scam", "fraud",
+    "bokacoda", "baler", "choda", "magi", "madarchod", "harami", "khankir",
+    "চুদা", "মাগির", "খানকির", "বাল", "মাদারচোদ", "হারামি", "বোকাচোদা"
+  ];
+
+  const matchedWord = forbiddenWords.find(word => rawText.includes(word));
+  if (matchedWord) {
     return res.status(200).json({
       isToxic: true,
-      rejectionReason: "Academic Policy Violation: Inappropriate, abusive, or offensive remarks are strictly prohibited.",
+      rejectionReason: "Academic Policy Violation: Profanity, slurs, or abusive language are strictly prohibited.",
       sentiment: "Negative",
       aiSummary: null
     });
@@ -32,15 +35,22 @@ Behavior Feedback (${behaviorRating}★): "${bComment || 'None'}"
     });
   }
 
+  const allComments = `
+Overall Feedback: "${comment || 'None'}"
+Teaching Feedback (${teachingRating}★): "${tComment || 'None'}"
+Punctuality Feedback (${punctualityRating}★): "${pComment || 'None'}"
+Behavior Feedback (${behaviorRating}★): "${bComment || 'None'}"
+`.trim();
+
   const prompt = `
-You are a strict academic moderation engine for EDURATE.
+You are an academic feedback moderation engine for EDURATE.
 Analyze the following student feedback comments:
 ${allComments}
 
-STRICT POLICY:
-1. BAN OFFENSIVE LANGUAGE: Any profanity, insults, derogatory labels, or personal hostility must be marked as toxic.
-2. BAN BANGLISH: Bengali written phonetically using Latin/English letters is prohibited.
-3. ACCEPTED SCRIPTS: Only constructive feedback in formal Bengali script (বাংলা হরফ) OR standard English is allowed.
+STRICT SAFETY & MODERATION POLICY:
+1. ZERO TOLERANCE FOR TOXICITY/INSULTS: Any swear words, vulgarity, sexual words, insults, or derogatory labels (e.g. calling the teacher worthless, fraud, clown, stupid) MUST be marked with "isToxic": true.
+2. BAN BANGLISH: Phonetic Bengali written using English letters (e.g., "kire", "valona", "porais", "bujhina") MUST be marked with "isToxic": true.
+3. ACCEPTED LANGUAGES: Only formal, respectful feedback in proper Bengali script (বাংলা হরফ) OR standard English is permitted. Constructive criticism about course pacing or exams is allowed only if polite and respectful.
 
 OUTPUT SCHEMA (Return ONLY valid JSON):
 {
@@ -60,7 +70,7 @@ OUTPUT SCHEMA (Return ONLY valid JSON):
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { 
-            temperature: 0.1,
+            temperature: 0.0,
             responseMimeType: "application/json"
           },
           safetySettings: [
@@ -74,27 +84,24 @@ OUTPUT SCHEMA (Return ONLY valid JSON):
     );
 
     const data = await response.json();
-    const candidate = data.candidates?.[0];
-    const rawText = candidate?.content?.parts?.[0]?.text;
+    const rawOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    // যদি কোনো টেক্সট না পাওয়া যায়, তবে সেটিকে কখনোই পাস করা হবে না
-    if (!rawText) {
+    if (!rawOutput) {
       return res.status(200).json({
         isToxic: true,
-        rejectionReason: "Content verification failed. Please review your comment for policy compliance.",
+        rejectionReason: "Content verification failed. Please review your review according to community guidelines.",
         sentiment: "Negative",
         aiSummary: null
       });
     }
 
-    const result = JSON.parse(rawText);
+    const result = JSON.parse(rawOutput);
     return res.status(200).json(result);
   } catch (error) {
     console.error("Moderation Error:", error);
-    // এরর হলেও নিরাপদ থাকতে সাবমিট ব্লক থাকবে
     return res.status(200).json({
       isToxic: true,
-      rejectionReason: "Moderation check failed. Please ensure the comment complies with guidelines and retry.",
+      rejectionReason: "Moderation engine unavailable. Please review your comment and try again.",
       sentiment: "Negative",
       aiSummary: null
     });
