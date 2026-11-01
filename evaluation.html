@@ -304,12 +304,8 @@
             submitBtn.disabled = true;
             submitBtn.innerText = "Analyzing with AI Guardrail...";
 
-            try {
-                let aiAnalysis = {
-                    isToxic: false,
-                    sentiment: "Neutral",
-                    aiSummary: "Feedback recorded."
-                };
+           try {
+                let aiAnalysis = null;
 
                 try {
                     const aiRes = await fetch('/api/analyze', {
@@ -322,18 +318,34 @@
                             behaviorRating: behaviorScore
                         })
                     });
-                    const aiData = await aiRes.json();
-                    if (aiData.isToxic) {
-                        showToast(`🚫 Blocked: ${aiData.rejectionReason || 'Please remove abusive language.'}`, true);
+
+                    if (!aiRes.ok) {
+                        showToast("⚠️ Service Notice: Feedback verification failed. Please try again.", true);
                         submitBtn.disabled = false;
                         submitBtn.innerText = "Submit Evaluation";
                         return;
                     }
+
+                    const aiData = await aiRes.json();
+
+                    // এআই কোনো পলিসি লঙ্ঘন বা বাংলিশ/টক্সিক শনাক্ত করলে সাবমিশন বাতিল হবে
+                    if (aiData.isToxic === true) {
+                        showToast(`⚠️ Review Required: ${aiData.rejectionReason || 'Your feedback does not meet academic guidelines.'}`, true);
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Submit Evaluation";
+                        return;
+                    }
+
                     aiAnalysis = aiData;
-                } catch(apiErr) {
-                    console.warn("AI bypass on network fallback", apiErr);
+                } catch (apiErr) {
+                    console.error("AI Verification Network Error:", apiErr);
+                    showToast("⚠️ Network Notice: Unable to verify feedback. Please check your connection and retry.", true);
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Submit Evaluation";
+                    return;
                 }
 
+                // এআই দ্বারা অনুমোদিত হওয়ার পরই কেবল ফায়ারবেসে ডেটা জমা হবে
                 await addDoc(collection(db, "ratings"), {
                     studentEmail: userEmail,
                     teacherFullName: currentTeacherFullName,
@@ -346,12 +358,12 @@
                     teachingComment: tComment, 
                     punctualityComment: pComment,
                     behaviorComment: bComment,
-                    aiSentiment: aiAnalysis.sentiment || "Neutral",
-                    aiSummary: aiAnalysis.aiSummary || "",
+                    aiSentiment: aiAnalysis?.sentiment || "Positive",
+                    aiSummary: aiAnalysis?.aiSummary || "",
                     timestamp: new Date()
                 });
 
-                showToast("✅ Evaluation Submitted & AI Verified!");
+                showToast("✅ Evaluation Verified & Successfully Submitted!");
                 setTimeout(() => { 
                     submitBtn.disabled = false;
                     submitBtn.innerText = "Submit Evaluation";
@@ -359,7 +371,7 @@
                     loadTeacherList(); 
                 }, 1000);
             } catch (e) {
-                showToast("Submission failed!", true);
+                showToast("❌ Submission Failed: Unable to record evaluation. Please try again.", true);
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Submit Evaluation";
                 console.error("Firestore Error:", e);
