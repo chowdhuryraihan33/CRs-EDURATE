@@ -59,7 +59,6 @@
         .feedback-card p { font-size: 13.5px; line-height: 1.5; color: var(--text); flex: 1;}
         .stars { color: #f1c40f; margin-top: 10px; font-size: 16px; letter-spacing: 2px;}
 
-        /* 🚀 NEW: Specific Category Comments Styling */
         .specific-comment { font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 8px 12px; border-radius: 8px; margin-top: 8px; border-left: 3px solid var(--accent); color: var(--text); line-height: 1.4; }
         .dark-mode .specific-comment { background: rgba(255,255,255,0.05); }
 
@@ -159,6 +158,12 @@
             </div>
         </div>
 
+        <!-- 🚀 AI Executive Insights Card -->
+        <div style="width: 100%; max-width: 1100px; background: var(--bg); padding: 25px 35px; border-radius: 25px; box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light); margin-bottom: 30px; border-left: 6px solid var(--accent);">
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--accent); margin-bottom: 10px;">🤖 AI Departmental & Pedagogical Brief</h3>
+            <p id="aiDepartmentSummary" style="font-size: 13.5px; line-height: 1.6; color: var(--text); opacity: 0.85;">Aggregating verified feedback summaries...</p>
+        </div>
+
         <div class="feedback-section">
             <h2 class="section-title">Student Feedbacks</h2>
             <div id="feedback-list"></div>
@@ -230,10 +235,12 @@
             
             let totalRating = 0, count = 0;
             let tSum = 0, pSum = 0, bSum = 0, catCount = 0;
+            let aiSummaries = [];
 
             feedbackContainer.innerHTML = '';
             if (querySnapshot.empty) {
                 feedbackContainer.innerHTML = '<p style="opacity:0.6; font-weight:600;">No feedbacks yet.</p>';
+                document.getElementById('aiDepartmentSummary').innerText = "No qualitative feedback has been recorded for this faculty member yet.";
                 return;
             }
 
@@ -242,6 +249,10 @@
                 totalRating += parseFloat(data.rating);
                 count++;
 
+                if (data.aiSummary && data.aiSummary.trim() !== "") {
+                    aiSummaries.push(data.aiSummary);
+                }
+
                 if (data.teachingScore !== undefined) {
                     tSum += parseFloat(data.teachingScore);
                     pSum += parseFloat(data.punctualityScore);
@@ -249,7 +260,6 @@
                     catCount++;
                 }
 
-                // 🚀 NEW: Generating HTML for Specific Category Comments (1-star or 5-stars)
                 let specificCommentsHtml = "";
                 
                 if (data.teachingComment) {
@@ -278,6 +288,13 @@
             document.getElementById('score-punctuality').innerText = catCount > 0 ? (pSum / catCount).toFixed(1) : "0.0";
             document.getElementById('score-behavior').innerText = catCount > 0 ? (bSum / catCount).toFixed(1) : "0.0";
 
+            const aiBox = document.getElementById('aiDepartmentSummary');
+            if (aiSummaries.length > 0) {
+                aiBox.innerHTML = `<strong>Latest Synthesis:</strong> ${aiSummaries[aiSummaries.length - 1]}<br><span style="font-size: 11.5px; opacity: 0.6; display: inline-block; margin-top: 6px;">* Generated autonomously via Gemini API based on student observations.</span>`;
+            } else {
+                aiBox.innerText = "No qualitative feedback has been recorded for this faculty member yet.";
+            }
+
         } catch (e) { console.error("Error loading feedbacks:", e); }
     }
 
@@ -298,18 +315,16 @@
         document.getElementById('sidebar').classList.toggle('open');
     });
 
-       // 🚀 CLOSE SIDEBAR ON OUTSIDE CLICK (MOBILE VIEW FIX)
-        document.addEventListener('click', (e) => {
-            const sidebar = document.getElementById('sidebar');
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            
-            // Check if the sidebar is open and the click happened outside the sidebar and hamburger button
-            if (sidebar && hamburgerBtn && sidebar.classList.contains('open')) {
-                if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
-                    sidebar.classList.remove('open');
-                }
+    document.addEventListener('click', (e) => {
+        const sidebar = document.getElementById('sidebar');
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        
+        if (sidebar && hamburgerBtn && sidebar.classList.contains('open')) {
+            if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+                sidebar.classList.remove('open');
             }
-        });
+        }
+    });
 
     (function() {
         const notifBtn = document.getElementById('notifBtn'), notifDropdown = document.getElementById('notifDropdown'),

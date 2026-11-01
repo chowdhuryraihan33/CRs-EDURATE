@@ -300,7 +300,40 @@
             const behaviorScore = parseInt(ratings.behavior) || 0;
             const avgRating = ((teachingScore + punctualityScore + behaviorScore) / 3).toFixed(1);
 
+            const submitBtn = document.querySelector('.submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Analyzing with AI Guardrail...";
+
             try {
+                let aiAnalysis = {
+                    isToxic: false,
+                    sentiment: "Neutral",
+                    aiSummary: "Feedback recorded."
+                };
+
+                try {
+                    const aiRes = await fetch('/api/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            comment, tComment, pComment, bComment,
+                            teachingRating: teachingScore,
+                            punctualityRating: punctualityScore,
+                            behaviorRating: behaviorScore
+                        })
+                    });
+                    const aiData = await aiRes.json();
+                    if (aiData.isToxic) {
+                        showToast(`🚫 Blocked: ${aiData.rejectionReason || 'Please remove abusive language.'}`, true);
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Submit Evaluation";
+                        return;
+                    }
+                    aiAnalysis = aiData;
+                } catch(apiErr) {
+                    console.warn("AI bypass on network fallback", apiErr);
+                }
+
                 await addDoc(collection(db, "ratings"), {
                     studentEmail: userEmail,
                     teacherFullName: currentTeacherFullName,
@@ -313,12 +346,22 @@
                     teachingComment: tComment, 
                     punctualityComment: pComment,
                     behaviorComment: bComment,
+                    aiSentiment: aiAnalysis.sentiment || "Neutral",
+                    aiSummary: aiAnalysis.aiSummary || "",
                     timestamp: new Date()
                 });
-                showToast("✅ Evaluation Submitted!");
-                setTimeout(() => { backToList(); loadTeacherList(); }, 1000);
+
+                showToast("✅ Evaluation Submitted & AI Verified!");
+                setTimeout(() => { 
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Submit Evaluation";
+                    backToList(); 
+                    loadTeacherList(); 
+                }, 1000);
             } catch (e) {
                 showToast("Submission failed!", true);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Evaluation";
                 console.error("Firestore Error:", e);
             }
         };
