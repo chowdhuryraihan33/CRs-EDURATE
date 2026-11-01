@@ -9,12 +9,23 @@ export default async function handler(req, res) {
 
   const rawText = ` ${comment || ''} ${tComment || ''} ${pComment || ''} ${bComment || ''} `.toLowerCase();
 
-  // রেজেক্স দিয়ে নির্দিষ্ট শব্দ চেক (যাতে বিবরণ বা অন্য শব্দের ভেতর থেকে ভুল না ধরে)
-  const explicitRegex = /\b(fuck|shit|bitch|bastard|asshole|dick|cunt|scam|fraud|bokacoda|baler|choda|magi|madarchod|harami|khankir)\b/i;
+  // ১. সরাসরি গালি ও অশ্লীল শব্দ (ইনস্ট্যান্ট ব্লক)
+  const explicitRegex = /\b(fuck|fucking|shit|bitch|bastard|asshole|dick|cunt|bokacoda|baler|choda|magi|madarchod|harami|khankir)\b/i;
   if (explicitRegex.test(rawText)) {
     return res.status(200).json({
       isToxic: true,
-      rejectionReason: "Academic Policy Violation: Inappropriate or abusive language is strictly prohibited.",
+      rejectionReason: "Academic Policy Violation: Profanity or abusive terms are strictly prohibited.",
+      sentiment: "Negative",
+      aiSummary: null
+    });
+  }
+
+  // ২. শত্রুভাবাপন্ন, বরখাস্তের দাবি বা চাকরিচ্যুতি সংক্রান্ত আক্রমণ (Deterministic Hostility Guard)
+  const hostilityRegex = /\b(fired|fire him|fire her|be removed|kick out|not be allowed|banned|incompetent|worthless|clown|scam|fraud|বের করে|বহিষ্কার|পড়ানোর যোগ্যতা নেই|যোগ্যতা নাই)\b/i;
+  if (hostilityRegex.test(rawText)) {
+    return res.status(200).json({
+      isToxic: true,
+      rejectionReason: "Academic Policy Violation: Demands for termination, exclusion, or personal attacks on competence are not permitted.",
       sentiment: "Negative",
       aiSummary: null
     });
@@ -35,23 +46,24 @@ Punctuality: "${pComment || 'N/A'}"
 Behavior: "${bComment || 'N/A'}"
 `.trim();
 
+  // ৩. এআই-এর জন্য স্পষ্ট নির্দেশিকা (বাংলিশ এবং কনটেক্সট যাচাইয়ের জন্য)
   const prompt = `
-You are the evaluation moderator for an academic platform called EDURATE.
+You are the evaluation moderator for the academic platform EDURATE.
 Analyze the following student feedback comments:
 
 ${feedbackText}
 
-MODERATION CRITERIA:
-1. ACCEPT VALID FEEDBACK: Polite constructive feedback, positive reviews, or academic critiques (e.g. asking for more problem-solving sessions, pacing issues, lecture improvements) written in formal Bengali script (বাংলা হরফ) OR standard English are 100% VALID. Mark "isToxic": false.
-2. REJECT HOSTILITY & ATTACKS: Direct insults, demanding to fire/remove/ban the instructor, calling them names, or extreme hostility must be marked "isToxic": true.
-3. REJECT BANGLISH: Bengali written phonetically using English/Latin alphabet must be marked "isToxic": true with rejectionReason "Banglish is prohibited. Use Bengali script or English."
+MODERATION RULES:
+1. BANGLISH: If the feedback contains phonetic Bengali written in English letters (e.g. "bhalo na", "faltu sir", "kichu bujhi na"), mark "isToxic": true with reason "Banglish is prohibited. Use Bengali script or English."
+2. PERSONAL ATTACKS: Any targeted personal hostility must have "isToxic": true.
+3. CONSTRUCTIVE CRITICISM: Pedagogical feedback on lectures, pacing, exams, slides, or labs written in standard English or formal Bengali script (বাংলা হরফ) must have "isToxic": false.
 
-OUTPUT MUST BE VALID JSON ONLY:
+OUTPUT STRICT JSON ONLY:
 {
   "isToxic": false,
   "rejectionReason": null,
   "sentiment": "Positive" or "Constructive" or "Negative",
-  "aiSummary": "1 sentence academic takeaway in English"
+  "aiSummary": "1 sentence academic summary in English"
 }
 `;
 
@@ -64,7 +76,7 @@ OUTPUT MUST BE VALID JSON ONLY:
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { 
-            temperature: 0.1,
+            temperature: 0.0,
             responseMimeType: "application/json"
           }
         })
@@ -75,7 +87,6 @@ OUTPUT MUST BE VALID JSON ONLY:
     let textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!textOutput) {
-      // যদি এআই ব্যর্থ হয়, সাধারণ একাডেমিক মন্তব্য যেন বাতিল না হয়ে যায়
       return res.status(200).json({
         isToxic: false,
         rejectionReason: null,
