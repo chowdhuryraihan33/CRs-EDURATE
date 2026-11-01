@@ -35,31 +35,24 @@ Behavior Feedback (${behaviorRating}★): "${bComment || 'None'}"
   }
 
   const prompt = `
-You are an academic feedback moderation engine for EDURATE.
-Analyze the following student feedback comments:
+You are a strict moderation engine for the EDURATE academic feedback system.
+Evaluate the following student feedback comments:
 ${allComments}
 
-LANGUAGE & SAFETY POLICY:
-1. ACCEPTED: Written in proper Bengali script (বাংলা হরফ) OR standard English. Constructive criticism (positive or negative) in these scripts is 100% VALID.
-2. BANGLISH: Reject only if Bengali words are written using English alphabets (e.g. "kire valona", "ki bal poras").
-3. PROFANITY: Reject if abusive words or harassment are present.
+STRICT POLICY:
+1. BAN PERSONAL ATTACKS: Direct insults, calling the instructor "worthless", "incompetent", "fraud", "waste of time", or any derogatory labeling must be marked as toxic immediately. Feedback must evaluate teaching and conduct, not make personal character attacks.
+2. BAN PROFANITY & SLURS: Any offensive language, profanity, vulgarity, or slurs (in English, Bengali script, or Banglish) is strictly prohibited.
+3. BAN BANGLISH: Bengali written with English letters is strictly prohibited.
+4. VALID FEEDBACK: Only constructive academic feedback (positive or critical) written politely without abusive or humiliating remarks is permitted.
 
-OUTPUT VALID JSON ONLY:
+OUTPUT SCHEMA (Valid JSON only):
 {
-  "isToxic": false,
-  "rejectionReason": null,
+  "isToxic": boolean,
+  "rejectionReason": string or null,
   "sentiment": "Positive" | "Constructive" | "Negative",
-  "aiSummary": "Short English takeaway"
-}
-If policy is violated:
-{
-  "isToxic": true,
-  "rejectionReason": "Clear reason in English",
-  "sentiment": "Negative",
-  "aiSummary": null
+  "aiSummary": string or null
 }
 `;
-
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
