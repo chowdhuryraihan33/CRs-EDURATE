@@ -9,10 +9,10 @@ export default async function handler(req, res) {
 
   const rawText = `${comment || ''} ${tComment || ''} ${pComment || ''} ${bComment || ''}`.toLowerCase();
 
-  // 1. Instant regex block (Gali, slurs, explicit personal insults)
+  // ১. প্রাথমিক তাৎক্ষণিক ফিল্টার (স্পষ্ট গালি ও অবমাননাকর শব্দ)
   const forbiddenWords = [
     "fuck", "shit", "bitch", "bastard", "asshole", "dick", "cunt", 
-    "worthless", "incompetent", "clown", "scam", "fraud",
+    "clown", "scam", "fraud",
     "bokacoda", "baler", "choda", "magi", "madarchod", "harami", "khankir",
     "চুদা", "মাগির", "খানকির", "বাল", "মাদারচোদ", "হারামি", "বোকাচোদা"
   ];
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   if (forbiddenWords.some(word => rawText.includes(word))) {
     return res.status(200).json({
       isToxic: true,
-      rejectionReason: "Academic Policy Violation: Inappropriate, abusive, or offensive language is strictly prohibited.",
+      rejectionReason: "Academic Policy Violation: Inappropriate or abusive language is prohibited.",
       sentiment: "Negative",
       aiSummary: null
     });
@@ -33,37 +33,33 @@ export default async function handler(req, res) {
     });
   }
 
-  const allComments = `
-Overall Feedback: "${comment || 'None'}"
-Teaching Feedback (${teachingRating}★): "${tComment || 'None'}"
-Punctuality Feedback (${punctualityRating}★): "${pComment || 'None'}"
-Behavior Feedback (${behaviorRating}★): "${bComment || 'None'}"
-`.trim();
+  const feedbackText = [
+    comment ? `Overall: "${comment}"` : null,
+    tComment ? `Teaching (${teachingRating}★): "${tComment}"` : null,
+    pComment ? `Punctuality (${punctualityRating}★): "${pComment}"` : null,
+    bComment ? `Behavior (${behaviorRating}★): "${bComment}"` : null,
+  ].filter(Boolean).join('\n') || 'No textual feedback provided.';
 
   const prompt = `
-You are the primary moderation and quality guardrail for EDURATE, a university faculty feedback platform.
-Analyze the following student submission:
-${allComments}
+You are the evaluation moderator for an academic platform called EDURATE.
+Analyze the following student feedback comments:
 
-TASK:
-Classify if this submission violates academic moderation standards.
+---
+${feedbackText}
+---
 
-VIOLATION CRITERIA (Any violation means "isToxic": true):
-1. PERSONAL ATTACKS & EXCLUSION: Any comment saying the instructor should be fired, banned, removed, not allowed to teach, or insults their character/intelligence.
-2. BANGLISH: Writing Bengali phonetically using English/Latin alphabet (e.g. "khub bhalo", "porate pare na", "faltu sir").
-3. VULGARITY & SLURS: Any offensive language, cursing, or hostility.
+EVALUATION RULES:
+1. ACCEPT CONSTRUCTIVE CRITICISM: Pedagogical suggestions regarding teaching style, course pacing, slides, exams, or problem-solving (e.g. "more problem-solving sessions needed", "speaks too fast") are strictly VALID and MUST have "isToxic": false.
+2. REJECT TOXICITY & PERSONAL ATTACKS: Insults, calling to fire/ban/remove the teacher, slurs, or derogatory remarks MUST have "isToxic": true.
+3. REJECT BANGLISH: Phonetic Bengali typed using Latin/English characters (e.g. "porano bhalo na", "faltu sir") MUST have "isToxic": true with reason "Banglish is prohibited. Please use standard Bengali script or English."
+4. ACCEPT SCRIPTS: Standard formal English and Bengali script (বাংলা হরফ) are both VALID.
 
-ALLOWED CRITERIA:
-1. Constructive praise OR constructive criticism written in standard, formal English.
-2. Constructive praise OR constructive criticism written in proper Bengali script (বাংলা হরফ).
-
-OUTPUT FORMAT:
-Respond with valid JSON only. Do not add markdown or backticks.
+Return ONLY a raw JSON object with this exact structure:
 {
-  "isToxic": true or false,
-  "rejectionReason": "Specific short rejection reason in English, or null if allowed",
-  "sentiment": "Positive" or "Constructive" or "Negative",
-  "aiSummary": "1-2 sentence academic constructive summary, or null if toxic"
+  "isToxic": false,
+  "rejectionReason": null,
+  "sentiment": "Positive" | "Constructive" | "Negative",
+  "aiSummary": "Brief 1-sentence constructive takeaway in English"
 }
 `;
 
@@ -76,7 +72,7 @@ Respond with valid JSON only. Do not add markdown or backticks.
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { 
-            temperature: 0.0,
+            temperature: 0.1,
             responseMimeType: "application/json"
           }
         })
@@ -87,9 +83,10 @@ Respond with valid JSON only. Do not add markdown or backticks.
     let textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!textOutput) {
+      console.error("Gemini Response Missing Text:", JSON.stringify(data));
       return res.status(200).json({
         isToxic: true,
-        rejectionReason: "Review verification failed. Please ensure feedback is purely constructive.",
+        rejectionReason: "Content verification timeout. Please retry your submission.",
         sentiment: "Negative",
         aiSummary: null
       });
@@ -98,22 +95,17 @@ Respond with valid JSON only. Do not add markdown or backticks.
     textOutput = textOutput.replace(/```json/g, '').replace(/```/g, '').trim();
     const result = JSON.parse(textOutput);
 
-    // If AI fails to decide or gives invalid response, fail-safe to block
-    if (typeof result.isToxic !== 'boolean') {
-      return res.status(200).json({
-        isToxic: true,
-        rejectionReason: "Feedback does not meet formatting guidelines.",
-        sentiment: "Negative",
-        aiSummary: null
-      });
-    }
-
-    return res.status(200).json(result);
+    return res.status(200).json({
+      isToxic: Boolean(result.isToxic),
+      rejectionReason: result.rejectionReason || null,
+      sentiment: result.sentiment || "Constructive",
+      aiSummary: result.aiSummary || "Feedback noted for faculty review."
+    });
   } catch (error) {
-    console.error("Moderation Error:", error);
+    console.error("Moderation Execution Error:", error);
     return res.status(200).json({
       isToxic: true,
-      rejectionReason: "Verification check failed. Please submit a valid academic evaluation.",
+      rejectionReason: "Verification service temporarily unavailable. Please retry.",
       sentiment: "Negative",
       aiSummary: null
     });
