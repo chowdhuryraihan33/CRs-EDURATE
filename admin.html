@@ -645,7 +645,7 @@
             });
         });
 
-        // Populate Approved Teachers into Dropdown
+       // Populate Approved Teachers into Dropdown
         function updateTeacherSelectDropdown() {
             const selectEl = document.getElementById('tUserSelect');
             if (!selectEl) return;
@@ -654,7 +654,8 @@
             
             selectEl.innerHTML = '<option value="">-- Choose Approved Teacher --</option>';
             approvedTeachers.forEach(t => {
-                selectEl.innerHTML += `<option value="${t.id}">${t.fullName} (${t.staffId || 'No ID'})</option>`;
+                const teacherId = t.staffId || t.studentId || t.id || 'No ID';
+                selectEl.innerHTML += `<option value="${t.id}">${t.fullName} (${teacherId})</option>`;
             });
         }
 
@@ -672,13 +673,12 @@
 
             const teacher = allUsers.find(u => u.id === uid);
             if (teacher) {
-                document.getElementById('tStaffId').value = teacher.staffId || '';
+                document.getElementById('tStaffId').value = teacher.staffId || teacher.studentId || teacher.id || '';
                 document.getElementById('tName').value = teacher.fullName || '';
                 document.getElementById('tEmail').value = teacher.realEmail || teacher.email || '';
-                document.getElementById('tPhone').value = teacher.contact || '';
+                document.getElementById('tPhone').value = teacher.contact || teacher.phone || '';
             }
         };
-
         window.addTeacher = async () => { 
             const tStaffId = document.getElementById('tStaffId').value.trim();
             const tPhone = document.getElementById('tPhone').value.trim();
