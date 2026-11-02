@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
   const rawText = ` ${comment || ''} ${tComment || ''} ${pComment || ''} ${bComment || ''} `.toLowerCase();
 
-  // ১. সরাসরি গালি ও অশ্লীল শব্দ (ইনস্ট্যান্ট ব্লক)
+  // 1. Shorasori gali ar obomanonakor shobdo (Instant block)
   const explicitRegex = /\b(fuck|fucking|shit|bitch|bastard|asshole|dick|cunt|bokacoda|baler|choda|magi|madarchod|harami|khankir)\b/i;
   if (explicitRegex.test(rawText)) {
     return res.status(200).json({
@@ -20,12 +20,23 @@ export default async function handler(req, res) {
     });
   }
 
-  // ২. শত্রুভাবাপন্ন, বরখাস্তের দাবি বা চাকরিচ্যুতি সংক্রান্ত আক্রমণ (Deterministic Hostility Guard)
-  const hostilityRegex = /\b(fired|fire him|fire her|be removed|kick out|not be allowed|banned|incompetent|worthless|clown|scam|fraud|বের করে|বহিষ্কার|পড়ানোর যোগ্যতা নেই|যোগ্যতা নাই)\b/i;
+  // 2. Chakitichyuti, bohiṣkar ba shatrubhabaponno attack (kicked out, fired, remove, etc.)
+  const hostilityRegex = /\b(fired|fire him|fire her|be removed|remove him|remove her|kick out|kicked out|not be allowed|banned|incompetent|worthless|clown|scam|fraud|ber kore|bohishto|bohisker|joggotai nai|joggotai nei)\b/i;
   if (hostilityRegex.test(rawText)) {
     return res.status(200).json({
       isToxic: true,
-      rejectionReason: "Academic Policy Violation: Demands for termination, exclusion, or personal attacks on competence are not permitted.",
+      rejectionReason: "Academic Policy Violation: Demands for termination, exclusion, or personal attacks are prohibited.",
+      sentiment: "Negative",
+      aiSummary: null
+    });
+  }
+
+  // 3. Common Banglish words (Code level catch, jate AI miss na kore)
+  const banglishRegex = /\b(valo|bhalo|khub|onek|porano|porate|kintu|somossa|shomossa|ase|ache|nai|nei|bujhi|bujhe|faltu|korse|koreche|dorkar|uchit)\b/i;
+  if (banglishRegex.test(rawText)) {
+    return res.status(200).json({
+      isToxic: true,
+      rejectionReason: "Banglish is strictly prohibited. Please use standard Bengali script (বাংলা হরফ) or English.",
       sentiment: "Negative",
       aiSummary: null
     });
@@ -46,24 +57,23 @@ Punctuality: "${pComment || 'N/A'}"
 Behavior: "${bComment || 'N/A'}"
 `.trim();
 
-  // ৩. এআই-এর জন্য স্পষ্ট নির্দেশিকা (বাংলিশ এবং কনটেক্সট যাচাইয়ের জন্য)
   const prompt = `
-You are the strict moderation engine for EDURATE.
+You are the evaluation moderator for the academic platform EDURATE.
 Analyze the following student feedback comments:
 
 ${feedbackText}
 
-CRITICAL RULES (VIOLATION = "isToxic": true):
-1. STRICT BANGLISH BAN: Look at EVERY single field (Overall, Teaching, Punctuality, Behavior). If ANY field contains Bengali written in English/Latin letters (e.g. "valo", "bhalo", "porano", "khub", "onek", "kintu", "ase", "sir valo", "kono somossa nai"), you MUST set "isToxic": true with rejectionReason: "Banglish is strictly prohibited. Please write in proper Bengali script (বাংলা হরফ) or English." Even if the sentiment is positive or polite, BANGLISH IS NEVER ALLOWED.
-2. PERSONAL ATTACKS & HOSTILITY: Any insults, calls to fire/ban/remove, or offensive remarks must have "isToxic": true.
-3. ALLOWED: Only feedback written entirely in standard English OR proper Bengali script (বাংলা হরফ) is allowed ("isToxic": false).
+MODERATION RULES:
+1. BANGLISH: If ANY field contains Bengali written phonetically in English/Latin letters (even if polite or positive), mark "isToxic": true with reason "Banglish is prohibited. Use Bengali script or English."
+2. PERSONAL ATTACKS & EXCLUSION: Hostility, demanding someone to be fired/removed/banned must have "isToxic": true.
+3. CONSTRUCTIVE CRITICISM: Polite constructive critiques or positive evaluations in standard English or proper Bengali script (বাংলা হরফ) must have "isToxic": false.
 
-Return ONLY valid JSON:
+OUTPUT STRICT JSON ONLY:
 {
-  "isToxic": boolean,
-  "rejectionReason": string or null,
-  "sentiment": "Positive" | "Constructive" | "Negative",
-  "aiSummary": string or null
+  "isToxic": false,
+  "rejectionReason": null,
+  "sentiment": "Positive" or "Constructive" or "Negative",
+  "aiSummary": "1 sentence academic summary in English"
 }
 `;
 
@@ -91,7 +101,7 @@ Return ONLY valid JSON:
         isToxic: false,
         rejectionReason: null,
         sentiment: "Constructive",
-        aiSummary: "Constructive pedagogical feedback recorded."
+        aiSummary: "Constructive feedback recorded."
       });
     }
 
