@@ -270,7 +270,7 @@
         el.style.display = (userRole === 'admin') ? 'flex' : 'none';
     });
 
-    async function loadTeacherFeedbacks(shortName) {
+   async function loadTeacherFeedbacks(shortName) {
         const feedbackContainer = document.getElementById('feedback-list');
         try {
             const q = query(collection(db, "ratings"), where("teacherShortName", "==", shortName));
@@ -279,6 +279,7 @@
             let totalRating = 0, count = 0;
             let tSum = 0, pSum = 0, bSum = 0, catCount = 0;
             let aiSummaries = [];
+            let latestActionItems = [];
             let positiveCount = 0, constructiveCount = 0, negativeCount = 0;
 
             feedbackContainer.innerHTML = '';
@@ -302,6 +303,11 @@
 
                 if (data.aiSummary && data.aiSummary.trim() !== "") {
                     aiSummaries.push(data.aiSummary);
+                }
+
+                // ডায়নামিক অ্যাকশন আইটেম রিড করা
+                if (data.aiActionItems && Array.isArray(data.aiActionItems) && data.aiActionItems.length > 0) {
+                    latestActionItems = data.aiActionItems;
                 }
 
                 if (data.teachingScore !== undefined) {
@@ -358,18 +364,24 @@
             document.getElementById('barConstructive').style.width = `${constPct}%`;
             document.getElementById('barNegative').style.width = `${negPct}%`;
 
-            // 3. AI Directives
+            // 3. AI Directives (Dynamic Rendering)
             const aiBox = document.getElementById('aiDepartmentSummary');
             const actionItemsBox = document.getElementById('aiActionItems');
 
             if (aiSummaries.length > 0) {
-                aiBox.innerHTML = `<strong>Performance Overview:</strong> Based on ${count} verified student evaluations. Latest analytical takeaway: <em>"${aiSummaries[aiSummaries.length - 1]}"</em>`;
+                const latestSummary = aiSummaries[aiSummaries.length - 1];
+                aiBox.innerHTML = `<strong>Performance Overview:</strong> Based on ${count} verified student evaluations.<br><span style="display:inline-block; margin-top:6px; color:var(--accent); font-weight:600;">Diagnostic Brief: "${latestSummary}"</span>`;
                 
-                actionItemsBox.innerHTML = `
-                    <li>Maintain structured syllabus pacing and clear conceptual demonstrations.</li>
-                    <li>Ensure board handwriting size and projector contrast are suitable for back-benchers.</li>
-                    <li>Allocate a 5-10 minute buffer at the end of lectures for open student Q&A.</li>
-                `;
+                // জেমিনি থেকে আসা পয়েন্ট ডায়নামিকভাবে রেন্ডার হবে
+                if (latestActionItems.length > 0) {
+                    actionItemsBox.innerHTML = latestActionItems.map(item => `<li>${item}</li>`).join('');
+                } else {
+                    actionItemsBox.innerHTML = `
+                        <li>Maintain structured syllabus pacing and clear conceptual demonstrations.</li>
+                        <li>Ensure board handwriting size and projector contrast are suitable for back-benchers.</li>
+                        <li>Allocate a 5-10 minute buffer at the end of lectures for open student Q&A.</li>
+                    `;
+                }
             } else {
                 aiBox.innerText = "No qualitative feedback has been recorded for this faculty member yet.";
                 actionItemsBox.innerHTML = '<li>No action items generated yet.</li>';

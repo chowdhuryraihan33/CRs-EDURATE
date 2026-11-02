@@ -16,7 +16,8 @@ export default async function handler(req, res) {
       isToxic: true,
       rejectionReason: "Academic Policy Violation: Gali ba obomanonakor bhasha bebohar kora shompurno nishiddho.",
       sentiment: "Negative",
-      aiSummary: null
+      aiSummary: null,
+      actionItems: []
     });
   }
 
@@ -33,7 +34,8 @@ export default async function handler(req, res) {
       isToxic: true,
       rejectionReason: "Academic Policy Violation: Personal attack, insult ba teacher-ke fire/remove korar dabi kora jabe na.",
       sentiment: "Negative",
-      aiSummary: null
+      aiSummary: null,
+      actionItems: []
     });
   }
 
@@ -44,7 +46,8 @@ export default async function handler(req, res) {
       isToxic: true,
       rejectionReason: "Banglish is strictly prohibited. Shudhu standard Bengali script (বাংলা হরফ) ba English bebohar korun.",
       sentiment: "Negative",
-      aiSummary: null
+      aiSummary: null,
+      actionItems: []
     });
   }
 
@@ -86,7 +89,12 @@ OUTPUT STRICT RAW JSON ONLY:
   "isToxic": false,
   "rejectionReason": null,
   "sentiment": "Positive" | "Constructive" | "Negative",
-  "aiSummary": "1 concise sentence in English summarizing the constructive takeaway"
+  "aiSummary": "A concise 1-sentence diagnostic summary stating exact areas of concern (e.g. teaching pace, punctuality, or attitude) and what needs improvement.",
+  "actionItems": [
+    "Specific pedagogical action item 1",
+    "Specific pedagogical action item 2",
+    "Specific pedagogical action item 3"
+  ]
 }
 `;
 
@@ -114,7 +122,12 @@ OUTPUT STRICT RAW JSON ONLY:
         isToxic: false,
         rejectionReason: null,
         sentiment: "Constructive",
-        aiSummary: "Constructive feedback recorded."
+        aiSummary: "Constructive feedback recorded.",
+        actionItems: [
+          "Maintain structured syllabus pacing and clear conceptual demonstrations.",
+          "Ensure board handwriting size and projector contrast are suitable for back-benchers.",
+          "Allocate a 5-10 minute buffer at the end of lectures for open student Q&A."
+        ]
       });
     }
 
@@ -125,7 +138,12 @@ OUTPUT STRICT RAW JSON ONLY:
       isToxic: Boolean(result.isToxic),
       rejectionReason: result.rejectionReason || null,
       sentiment: result.sentiment || "Constructive",
-      aiSummary: result.aiSummary || "Feedback recorded successfully."
+      aiSummary: result.aiSummary || "Feedback recorded successfully.",
+      actionItems: Array.isArray(result.actionItems) && result.actionItems.length > 0 ? result.actionItems : [
+        "Maintain structured syllabus pacing and clear conceptual demonstrations.",
+        "Ensure board handwriting size and projector contrast are suitable for back-benchers.",
+        "Allocate a 5-10 minute buffer at the end of lectures for open student Q&A."
+      ]
     });
   } catch (error) {
     console.error("Moderation Error:", error);
@@ -133,7 +151,12 @@ OUTPUT STRICT RAW JSON ONLY:
       isToxic: false,
       rejectionReason: null,
       sentiment: "Constructive",
-      aiSummary: "Feedback recorded successfully."
+      aiSummary: "Feedback recorded successfully.",
+      actionItems: [
+        "Maintain structured syllabus pacing and clear conceptual demonstrations.",
+        "Ensure board handwriting size and projector contrast are suitable for back-benchers.",
+        "Allocate a 5-10 minute buffer at the end of lectures for open student Q&A."
+      ]
     });
   }
 }
