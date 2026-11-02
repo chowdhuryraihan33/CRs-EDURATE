@@ -231,21 +231,28 @@
             </div>
         </div>
 
-        <!-- Add Faculty Profile Card -->
+       <!-- Add Registered Faculty Profile Card -->
         <div class="admin-card">
-            <h2 class="section-title" id="form-title">Add Non-Registered Faculty Profile</h2>
-            <p style="font-size: 13px; opacity: 0.6; margin-top: -15px; margin-bottom: 20px;">* Add manual profiles for teachers who haven't registered yet.</p>
+            <h2 class="section-title" id="form-title">Assign Approved Teacher to Faculty Board</h2>
+            <p style="font-size: 13px; opacity: 0.6; margin-top: -15px; margin-bottom: 20px;">* Select an approved registered teacher to create their public evaluation profile.</p>
             
+            <div class="input-group" style="margin-bottom: 20px;">
+                <label>Select Approved Teacher *</label>
+                <select id="tUserSelect" class="input-field" onchange="fillTeacherDetails()">
+                    <option value="">-- Choose Approved Teacher --</option>
+                </select>
+            </div>
+
             <div class="input-grid">
-                <div class="input-group"><label>Staff ID *</label><input type="text" id="tStaffId" class="input-field" placeholder="e.g. TCH-101"></div>
+                <div class="input-group"><label>Staff ID *</label><input type="text" id="tStaffId" class="input-field" readonly style="opacity: 0.85;"></div>
+                <div class="input-group"><label>Full Name *</label><input type="text" id="tName" class="input-field" readonly style="opacity: 0.85;"></div>
+                <div class="input-group"><label>Email *</label><input type="email" id="tEmail" class="input-field" readonly style="opacity: 0.85;"></div>
                 <div class="input-group"><label>Phone Number *</label><input type="text" id="tPhone" class="input-field" placeholder="e.g. 017XXXXXXXX"></div>
-                <div class="input-group"><label>Full Name *</label><input type="text" id="tName" class="input-field" placeholder="e.g. Dr. John Doe"></div>
-                <div class="input-group"><label>Short Name *</label><input type="text" id="tShort" class="input-field" placeholder="e.g. JD"></div>
+                <div class="input-group"><label>Short Name (Initial) *</label><input type="text" id="tShort" class="input-field" placeholder="e.g. JD"></div>
                 <div class="input-group"><label>Course / Dept *</label><input type="text" id="tDept" class="input-field" placeholder="e.g. Software Engineering"></div>
-                <div class="input-group"><label>Email *</label><input type="email" id="tEmail" class="input-field" placeholder="teacher@univ.edu"></div>
             </div>
             <input type="hidden" id="editingDocId">
-            <button class="btn" id="addBtn" onclick="addTeacher()">➕ Add Profile</button>
+            <button class="btn" id="addBtn" onclick="addTeacher()">➕ Add Faculty Profile</button>
             <button class="btn" id="updateBtn" style="display:none; color:var(--success);" onclick="updateTeacher()">💾 Update Profile</button>
             <button class="btn" id="cancelBtn" style="display:none; color:var(--danger); margin-top:10px;" onclick="cancelEdit()">❌ Cancel Editing</button>
         </div>
@@ -365,6 +372,7 @@
 
             renderPendingTable();
             renderApprovedTable();
+            updateTeacherSelectDropdown();
         });
 
         // Live Search Listener
@@ -636,6 +644,40 @@
                     </tr>`;
             });
         });
+
+        // Populate Approved Teachers into Dropdown
+        function updateTeacherSelectDropdown() {
+            const selectEl = document.getElementById('tUserSelect');
+            if (!selectEl) return;
+            
+            const approvedTeachers = allUsers.filter(u => u.role === 'teacher' && u.status === 'approved');
+            
+            selectEl.innerHTML = '<option value="">-- Choose Approved Teacher --</option>';
+            approvedTeachers.forEach(t => {
+                selectEl.innerHTML += `<option value="${t.id}">${t.fullName} (${t.staffId || 'No ID'})</option>`;
+            });
+        }
+
+        // Auto-fill Form fields when an approved teacher is selected
+        window.fillTeacherDetails = () => {
+            const selectEl = document.getElementById('tUserSelect');
+            const uid = selectEl.value;
+            if (!uid) {
+                document.getElementById('tStaffId').value = '';
+                document.getElementById('tName').value = '';
+                document.getElementById('tEmail').value = '';
+                document.getElementById('tPhone').value = '';
+                return;
+            }
+
+            const teacher = allUsers.find(u => u.id === uid);
+            if (teacher) {
+                document.getElementById('tStaffId').value = teacher.staffId || '';
+                document.getElementById('tName').value = teacher.fullName || '';
+                document.getElementById('tEmail').value = teacher.realEmail || teacher.email || '';
+                document.getElementById('tPhone').value = teacher.contact || '';
+            }
+        };
 
         window.addTeacher = async () => { 
             const tStaffId = document.getElementById('tStaffId').value.trim();
