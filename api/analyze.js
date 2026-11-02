@@ -115,31 +115,47 @@ OUTPUT STRICT RAW JSON ONLY:
     );
 
     const data = await response.json();
-    let textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!textOutput) {
+    
+    // ১. গুগল কোনো এরর দিলে তা সরাসরি ব্রাউজারে টোস্ট মেসেজ আকারে পাঠানো
+    if (data.error) {
+      console.error("Gemini Error:", data.error);
       return res.status(200).json({
-        isToxic: false,
-        rejectionReason: null,
-        sentiment: "Constructive",
-        aiSummary: "Constructive feedback recorded.",
-        actionItems: [
-          "Maintain structured syllabus pacing and clear conceptual demonstrations.",
-          "Ensure board handwriting size and projector contrast are suitable for back-benchers.",
-          "Allocate a 5-10 minute buffer at the end of lectures for open student Q&A."
-        ]
+        isToxic: true,
+        rejectionReason: `Gemini API Error: ${data.error.message || JSON.stringify(data.error)}`
       });
     }
 
-    textOutput = textOutput.replace(/```json/g, '').replace(/```/g, '').trim();
-    const result = JSON.parse(textOutput);
+    let textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
+    // ২. কোনো আউটপুট না এলে গুগলের কাঁচা মেসেজ দেখানো
+    if (!textOutput) {
+      return res.status(200).json({
+        isToxic: true,
+        rejectionReason: "Gemini No Output: " + JSON.stringify(data).substring(0, 150)
+      });
+    }
+
+    // ৩. কোড ব্লক ব্যাকটিক ও স্পেস ক্লিন করা
+    textOutput = textOutput.replace(/```json/gi, '').replace(/```/g, '').trim();
+    
+    let result;
+    try {
+      result = JSON.parse(textOutput);
+    } catch (parseErr) {
+      console.error("JSON Parse Error:", parseErr, "Raw output:", textOutput);
+      return res.status(200).json({
+        isToxic: true,
+        rejectionReason: "JSON Parse Error on Gemini Output: " + textOutput.substring(0, 120)
+      });
+    }
+
+    // ৪. সফল ডায়নামিক রেজাল্ট পাঠানো
     return res.status(200).json({
       isToxic: Boolean(result.isToxic),
       rejectionReason: result.rejectionReason || null,
       sentiment: result.sentiment || "Constructive",
-      aiSummary: result.aiSummary || "Feedback recorded successfully.",
-      actionItems: Array.isArray(result.actionItems) && result.actionItems.length > 0 ? result.actionItems : [
+      aiSummary: result.aiSummary || "Actionable pedagogical feedback noted.",
+      actionItems: (Array.isArray(result.actionItems) && result.actionItems.length > 0) ? result.actionItems : [
         "Maintain structured syllabus pacing and clear conceptual demonstrations.",
         "Ensure board handwriting size and projector contrast are suitable for back-benchers.",
         "Allocate a 5-10 minute buffer at the end of lectures for open student Q&A."
@@ -148,15 +164,8 @@ OUTPUT STRICT RAW JSON ONLY:
   } catch (error) {
     console.error("Moderation Error:", error);
     return res.status(200).json({
-      isToxic: false,
-      rejectionReason: null,
-      sentiment: "Constructive",
-      aiSummary: "Feedback recorded successfully.",
-      actionItems: [
-        "Maintain structured syllabus pacing and clear conceptual demonstrations.",
-        "Ensure board handwriting size and projector contrast are suitable for back-benchers.",
-        "Allocate a 5-10 minute buffer at the end of lectures for open student Q&A."
-      ]
+      isToxic: true,
+      rejectionReason: `Server Catch Error: ${error.message || error}`
     });
   }
 }
