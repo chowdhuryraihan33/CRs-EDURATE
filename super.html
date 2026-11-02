@@ -439,12 +439,13 @@
                 notifSnap.forEach(d => batchNotif.delete(d.ref));
                 await batchNotif.commit();
 
-                // 3. Delete all users except Super Admin
+        
+                // 3. Delete all users except Super Admin (Admin role must be preserved only)
                 const usersSnap = await getDocs(collection(db, "users"));
                 const batchUsers = writeBatch(db);
                 usersSnap.forEach(d => {
                     const u = d.data();
-                    const isSuper = (u.email === SUPER_ADMIN_EMAIL || u.realEmail === SUPER_ADMIN_EMAIL);
+                    const isSuper = (u.email === SUPER_ADMIN_EMAIL || u.realEmail === SUPER_ADMIN_EMAIL) && u.role === 'admin';
                     if (!isSuper) {
                         batchUsers.delete(d.ref);
                     }
