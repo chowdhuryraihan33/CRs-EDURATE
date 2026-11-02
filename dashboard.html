@@ -447,16 +447,16 @@
         }
 
         window.downloadSummary = () => {
-            let content = `EDURATE SYSTEM - OVERALL RATING SUMMARY\n`;
-            content += `===========================================\n`;
+            let content = `EDURATE SYSTEM - FACULTY PERFORMANCE & AI AUDIT REPORT\n`;
+            content += `==========================================================\n`;
             content += `Generated on: ${new Date().toLocaleString()}\n\n`;
             
-            content += `[ TOTAL STATISTICS ]\n`;
+            content += `[ OVERALL SYSTEM STATISTICS ]\n`;
             content += `- Total Reviews Submitted: ${document.getElementById('stat-total').innerText}\n`;
             content += `- System Pending Reviews: ${document.getElementById('stat-pending').innerText}\n`;
             content += `- Overall Average Rating: ${document.getElementById('stat-avg').innerText} / 5.0\n\n`;
             
-            content += `[ FACULTY PERFORMANCE ]\n`;
+            content += `[ FACULTY EVALUATION SUMMARY ]\n`;
             if (window.globalFacultySummary.length > 0) {
                 window.globalFacultySummary.forEach((teacherData, index) => {
                     content += `${index + 1}. ${teacherData}\n`;
@@ -465,13 +465,16 @@
                 content += `No faculty evaluation data available.\n`;
             }
 
-            content += `\n===========================================\n`;
-            content += `* Confidential Report for Admin Use Only *`;
+            content += `\n[ AI MODERATION POLICY ]\n`;
+            content += `- Engine: Gemini 1.5 Flash + Hybrid Deterministic Pipeline\n`;
+            content += `- Standards: Slurs, Banglish & Hostility Blocked. Constructive Academic Feedback Verified.\n`;
+            content += `\n==========================================================\n`;
+            content += `* Confidential Report - For University Faculty & Admin Use Only *`;
 
             const blob = new Blob([content], { type: 'text/plain' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `EDURATE_Summary_${Date.now()}.txt`;
+            link.download = `EDURATE_AI_Audit_Report_${Date.now()}.txt`;
             link.click();
         };
 

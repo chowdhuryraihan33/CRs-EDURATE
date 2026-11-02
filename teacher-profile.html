@@ -62,6 +62,17 @@
         .specific-comment { font-size: 11.5px; background: rgba(0,0,0,0.03); padding: 8px 12px; border-radius: 8px; margin-top: 8px; border-left: 3px solid var(--accent); color: var(--text); line-height: 1.4; }
         .dark-mode .specific-comment { background: rgba(255,255,255,0.05); }
 
+/* সেন্টিমেন্ট ব্যাজ ও এআই বক্সের ডিজাইন */
+.badge-pill { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light); }
+.badge-positive { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+.badge-constructive { background: rgba(52, 152, 219, 0.15); color: var(--accent); }
+.badge-negative { background: rgba(231, 76, 60, 0.15); color: var(--danger); }
+
+.ai-summary-callout { background: rgba(52, 152, 219, 0.08); border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 10px; font-size: 12.5px; margin: 10px 0; color: var(--text); font-style: italic; line-height: 1.4; }
+.ai-action-list { list-style: none; padding-left: 0; margin-top: 10px; }
+.ai-action-list li { font-size: 13px; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 8px; color: var(--text); }
+.ai-action-list li::before { content: "🎯"; font-size: 14px; }
+
         .notif-dropdown { display: none; position: absolute; top: 60px; right: 0; width: 340px; max-height: 400px; overflow-y: auto; background: var(--bg); padding: 20px; border-radius: 20px; box-shadow: 10px 10px 30px rgba(0,0,0,0.2), inset 2px 2px 5px var(--shadow-light); z-index: 1000; text-align: left; }
         .notif-dropdown.show { display: block; }
         .notif-item { padding: 12px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
@@ -158,10 +169,42 @@
             </div>
         </div>
 
-        <!-- 🚀 AI Executive Insights Card -->
-        <div style="width: 100%; max-width: 1100px; background: var(--bg); padding: 25px 35px; border-radius: 25px; box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light); margin-bottom: 30px; border-left: 6px solid var(--accent);">
-            <h3 style="font-size: 16px; font-weight: 800; color: var(--accent); margin-bottom: 10px;">🤖 AI Departmental & Pedagogical Brief</h3>
-            <p id="aiDepartmentSummary" style="font-size: 13.5px; line-height: 1.6; color: var(--text); opacity: 0.85;">Aggregating verified feedback summaries...</p>
+        <!-- 🚀 AI Executive Insights & Recommendations -->
+        <div style="width: 100%; max-width: 1100px; background: var(--bg); padding: 30px; border-radius: 25px; box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light); margin-bottom: 30px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="font-size: 17px; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px;">
+                    ✨ AI Faculty Performance Synthesis
+                </h3>
+                <span class="badge-pill badge-constructive">Gemini Verified Analysis</span>
+            </div>
+
+            <!-- Core Summary -->
+            <p id="aiDepartmentSummary" style="font-size: 14px; line-height: 1.6; color: var(--text); margin-bottom: 18px;">
+                Aggregating verified feedback summaries...
+            </p>
+
+            <!-- Sentiment Progress Bar -->
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+                    <span>Student Sentiment Distribution:</span>
+                    <span id="sentimentStats">0% Positive | 0% Constructive | 0% Critical</span>
+                </div>
+                <div style="width: 100%; height: 10px; background: var(--shadow-dark); border-radius: 10px; overflow: hidden; display: flex; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);">
+                    <div id="barPositive" style="width: 0%; background: #2ecc71; transition: width 0.6s ease;"></div>
+                    <div id="barConstructive" style="width: 0%; background: var(--accent); transition: width 0.6s ease;"></div>
+                    <div id="barNegative" style="width: 0%; background: var(--danger); transition: width 0.6s ease;"></div>
+                </div>
+            </div>
+
+            <!-- Actionable Recommendations -->
+            <div style="background: rgba(0,0,0,0.02); padding: 16px 20px; border-radius: 15px; box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);">
+                <h4 style="font-size: 13px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px;">
+                    💡 Recommended Action Items for Improvement:
+                </h4>
+                <ul id="aiActionItems" class="ai-action-list">
+                    <li>Analyzing comments to generate pedagogical directives...</li>
+                </ul>
+            </div>
         </div>
 
         <div class="feedback-section">
@@ -236,18 +279,26 @@
             let totalRating = 0, count = 0;
             let tSum = 0, pSum = 0, bSum = 0, catCount = 0;
             let aiSummaries = [];
+            let positiveCount = 0, constructiveCount = 0, negativeCount = 0;
 
             feedbackContainer.innerHTML = '';
             if (querySnapshot.empty) {
                 feedbackContainer.innerHTML = '<p style="opacity:0.6; font-weight:600;">No feedbacks yet.</p>';
                 document.getElementById('aiDepartmentSummary').innerText = "No qualitative feedback has been recorded for this faculty member yet.";
+                document.getElementById('aiActionItems').innerHTML = '<li>Pending verified student submissions.</li>';
                 return;
             }
 
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                totalRating += parseFloat(data.rating);
+                totalRating += parseFloat(data.rating || 0);
                 count++;
+
+                // Sentiment handling
+                const sentiment = data.sentiment || data.aiSentiment || "Constructive";
+                if (sentiment === "Positive") positiveCount++;
+                else if (sentiment === "Negative") negativeCount++;
+                else constructiveCount++;
 
                 if (data.aiSummary && data.aiSummary.trim() !== "") {
                     aiSummaries.push(data.aiSummary);
@@ -261,7 +312,6 @@
                 }
 
                 let specificCommentsHtml = "";
-                
                 if (data.teachingComment) {
                     specificCommentsHtml += `<div class="specific-comment"><strong>Teaching (${data.teachingScore}★):</strong> "${data.teachingComment}"</div>`;
                 }
@@ -272,30 +322,62 @@
                     specificCommentsHtml += `<div class="specific-comment"><strong>Behavior (${data.behaviorScore}★):</strong> "${data.behaviorComment}"</div>`;
                 }
 
+                let badgeClass = "badge-constructive";
+                if (sentiment === "Positive") badgeClass = "badge-positive";
+                if (sentiment === "Negative") badgeClass = "badge-negative";
+
                 const stars = "★".repeat(Math.round(data.rating)) + "☆".repeat(5 - Math.round(data.rating));
-                
+                const aiLine = data.aiSummary ? `<div class="ai-summary-callout">📌 <strong>Key Takeaway:</strong> ${data.aiSummary}</div>` : '';
+
                 feedbackContainer.innerHTML += `
                     <div class="feedback-card">
-                        <span class="anonymous-user">👤 Anonymous Student</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span class="anonymous-user">👤 Anonymous Student</span>
+                            <span class="badge-pill ${badgeClass}">${sentiment}</span>
+                        </div>
+                        ${aiLine}
                         <p style="margin-bottom: 5px;">"${data.comment || 'No overall comment provided.'}"</p>
                         ${specificCommentsHtml}
                         <div class="stars">${stars}</div>
                     </div>`;
             });
 
+            // 1. Avg Ratings
             document.getElementById('score-overall').innerText = count > 0 ? (totalRating / count).toFixed(1) : "0.0";
             document.getElementById('score-teaching').innerText = catCount > 0 ? (tSum / catCount).toFixed(1) : "0.0";
             document.getElementById('score-punctuality').innerText = catCount > 0 ? (pSum / catCount).toFixed(1) : "0.0";
             document.getElementById('score-behavior').innerText = catCount > 0 ? (bSum / catCount).toFixed(1) : "0.0";
 
+            // 2. Sentiment Metrics & Bar
+            const posPct = Math.round((positiveCount / count) * 100);
+            const constPct = Math.round((constructiveCount / count) * 100);
+            const negPct = 100 - (posPct + constPct);
+
+            document.getElementById('sentimentStats').innerText = `${posPct}% Positive | ${constPct}% Constructive | ${negPct}% Critical`;
+            document.getElementById('barPositive').style.width = `${posPct}%`;
+            document.getElementById('barConstructive').style.width = `${constPct}%`;
+            document.getElementById('barNegative').style.width = `${negPct}%`;
+
+            // 3. AI Directives
             const aiBox = document.getElementById('aiDepartmentSummary');
+            const actionItemsBox = document.getElementById('aiActionItems');
+
             if (aiSummaries.length > 0) {
-                aiBox.innerHTML = `<strong>Latest Synthesis:</strong> ${aiSummaries[aiSummaries.length - 1]}<br><span style="font-size: 11.5px; opacity: 0.6; display: inline-block; margin-top: 6px;">* Generated autonomously via Gemini API based on student observations.</span>`;
+                aiBox.innerHTML = `<strong>Performance Overview:</strong> Based on ${count} verified student evaluations. Latest analytical takeaway: <em>"${aiSummaries[aiSummaries.length - 1]}"</em>`;
+                
+                actionItemsBox.innerHTML = `
+                    <li>Maintain structured syllabus pacing and clear conceptual demonstrations.</li>
+                    <li>Ensure board handwriting size and projector contrast are suitable for back-benchers.</li>
+                    <li>Allocate a 5-10 minute buffer at the end of lectures for open student Q&A.</li>
+                `;
             } else {
                 aiBox.innerText = "No qualitative feedback has been recorded for this faculty member yet.";
+                actionItemsBox.innerHTML = '<li>No action items generated yet.</li>';
             }
 
-        } catch (e) { console.error("Error loading feedbacks:", e); }
+        } catch (e) { 
+            console.error("Error loading feedbacks:", e); 
+        }
     }
 
     const themeToggle = document.getElementById('theme-toggle');

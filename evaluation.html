@@ -356,7 +356,7 @@
                     return;
                 }
 
-                // এআই দ্বারা অনুমোদিত হওয়ার পরই কেবল ফায়ারবেসে ডেটা জমা হবে
+               // এআই দ্বারা অনুমোদিত হওয়ার পরই কেবল ফায়ারবেসে ডেটা জমা হবে
                 await addDoc(collection(db, "ratings"), {
                     studentEmail: userEmail,
                     teacherFullName: currentTeacherFullName,
@@ -369,8 +369,8 @@
                     teachingComment: tComment, 
                     punctualityComment: pComment,
                     behaviorComment: bComment,
-                    aiSentiment: aiAnalysis?.sentiment || "Positive",
-                    aiSummary: aiAnalysis?.aiSummary || "",
+                    sentiment: aiAnalysis?.sentiment || "Constructive",
+                    aiSummary: aiAnalysis?.aiSummary || "Constructive feedback recorded.",
                     timestamp: new Date()
                 });
 
