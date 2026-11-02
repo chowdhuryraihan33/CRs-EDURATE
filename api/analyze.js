@@ -48,22 +48,22 @@ Behavior: "${bComment || 'N/A'}"
 
   // ৩. এআই-এর জন্য স্পষ্ট নির্দেশিকা (বাংলিশ এবং কনটেক্সট যাচাইয়ের জন্য)
   const prompt = `
-You are the evaluation moderator for the academic platform EDURATE.
+You are the strict moderation engine for EDURATE.
 Analyze the following student feedback comments:
 
 ${feedbackText}
 
-MODERATION RULES:
-1. BANGLISH: If the feedback contains phonetic Bengali written in English letters (e.g. "bhalo na", "faltu sir", "kichu bujhi na"), mark "isToxic": true with reason "Banglish is prohibited. Use Bengali script or English."
-2. PERSONAL ATTACKS: Any targeted personal hostility must have "isToxic": true.
-3. CONSTRUCTIVE CRITICISM: Pedagogical feedback on lectures, pacing, exams, slides, or labs written in standard English or formal Bengali script (বাংলা হরফ) must have "isToxic": false.
+CRITICAL RULES (VIOLATION = "isToxic": true):
+1. STRICT BANGLISH BAN: Look at EVERY single field (Overall, Teaching, Punctuality, Behavior). If ANY field contains Bengali written in English/Latin letters (e.g. "valo", "bhalo", "porano", "khub", "onek", "kintu", "ase", "sir valo", "kono somossa nai"), you MUST set "isToxic": true with rejectionReason: "Banglish is strictly prohibited. Please write in proper Bengali script (বাংলা হরফ) or English." Even if the sentiment is positive or polite, BANGLISH IS NEVER ALLOWED.
+2. PERSONAL ATTACKS & HOSTILITY: Any insults, calls to fire/ban/remove, or offensive remarks must have "isToxic": true.
+3. ALLOWED: Only feedback written entirely in standard English OR proper Bengali script (বাংলা হরফ) is allowed ("isToxic": false).
 
-OUTPUT STRICT JSON ONLY:
+Return ONLY valid JSON:
 {
-  "isToxic": false,
-  "rejectionReason": null,
-  "sentiment": "Positive" or "Constructive" or "Negative",
-  "aiSummary": "1 sentence academic summary in English"
+  "isToxic": boolean,
+  "rejectionReason": string or null,
+  "sentiment": "Positive" | "Constructive" | "Negative",
+  "aiSummary": string or null
 }
 `;
 
