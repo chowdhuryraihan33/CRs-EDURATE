@@ -9,34 +9,40 @@ export default async function handler(req, res) {
 
   const rawText = ` ${comment || ''} ${tComment || ''} ${pComment || ''} ${bComment || ''} `.toLowerCase();
 
-  // 1. Shorasori gali ar obomanonakor shobdo (Instant block)
-  const explicitRegex = /\b(fuck|fucking|shit|bitch|bastard|asshole|dick|cunt|bokacoda|baler|choda|magi|madarchod|harami|khankir)\b/i;
+  // 1. Shorasori Gali & Obomanonakor Shobdo (Instant Block - Bangla, English & Slang)
+  const explicitRegex = /\b(fuck|fucking|shit|bitch|bastard|asshole|dick|cunt|bokacoda|baler|choda|magi|madarchod|harami|khankir|khanki|gandu|suta|chod|chodna| চুদা | মাগির | খানকির | বাল | মাদারচোদ | হারামি | বোকাচোদা | শুয়োরের )\b/i;
   if (explicitRegex.test(rawText)) {
     return res.status(200).json({
       isToxic: true,
-      rejectionReason: "Academic Policy Violation: Profanity or abusive terms are strictly prohibited.",
+      rejectionReason: "Academic Policy Violation: Gali ba obomanonakor bhasha bebohar kora shompurno nishiddho.",
       sentiment: "Negative",
       aiSummary: null
     });
   }
 
-  // 2. Chakitichyuti, bohiṣkar ba shatrubhabaponno attack (kicked out, fired, remove, etc.)
-  const hostilityRegex = /\b(fired|fire him|fire her|be removed|remove him|remove her|kick out|kicked out|not be allowed|banned|incompetent|worthless|clown|scam|fraud|ber kore|bohishto|bohisker|joggotai nai|joggotai nei)\b/i;
-  if (hostilityRegex.test(rawText)) {
+  // 2. Personal Attack, Insult & Dismissal/Fire korar Dabi (English & Bangla)
+  const hostilePatterns = [
+    "fired", "fire him", "fire her", "kicked out", "kick out", "be removed",
+    "not be allowed", "incompetent", "worthless", "clown", "fraud", "scam",
+    "চাকরিচ্যুতি", "বহিষ্কার", "বের করে দেওয়া", "পড়ানোর যোগ্যতা নেই", "চাকরি থেকে",
+    "অযোগ্য", "কোনো যোগ্যতা নাই", "দূর করে দেওয়া হোক", "গায়ে হাত", "বেয়াদব"
+  ];
+
+  if (hostilePatterns.some(pattern => rawText.includes(pattern))) {
     return res.status(200).json({
       isToxic: true,
-      rejectionReason: "Academic Policy Violation: Demands for termination, exclusion, or personal attacks are prohibited.",
+      rejectionReason: "Academic Policy Violation: Personal attack, insult ba teacher-ke fire/remove korar dabi kora jabe na.",
       sentiment: "Negative",
       aiSummary: null
     });
   }
 
-  // 3. Common Banglish words (Code level catch, jate AI miss na kore)
-  const banglishRegex = /\b(valo|bhalo|khub|onek|porano|porate|kintu|somossa|shomossa|ase|ache|nai|nei|bujhi|bujhe|faltu|korse|koreche|dorkar|uchit)\b/i;
+  // 3. Common Banglish Words Filter (Deterministic Catch)
+  const banglishRegex = /\b(valo|bhalo|khub|onek|porano|porate|kintu|somossa|shomossa|ase|ache|nai|nei|bujhi|bujhe|faltu|korse|koreche|dorkar|uchit|sir er|sir ke|clas e|kisu)\b/i;
   if (banglishRegex.test(rawText)) {
     return res.status(200).json({
       isToxic: true,
-      rejectionReason: "Banglish is strictly prohibited. Please use standard Bengali script (বাংলা হরফ) or English.",
+      rejectionReason: "Banglish is strictly prohibited. Shudhu standard Bengali script (বাংলা হরফ) ba English bebohar korun.",
       sentiment: "Negative",
       aiSummary: null
     });
@@ -50,30 +56,37 @@ export default async function handler(req, res) {
   }
 
   const feedbackText = `
-Student Feedback:
-Overall: "${comment || 'N/A'}"
-Teaching: "${tComment || 'N/A'}"
-Punctuality: "${pComment || 'N/A'}"
-Behavior: "${bComment || 'N/A'}"
+Overall Feedback: "${comment || 'None'}"
+Teaching Feedback (${teachingRating || 'N/A'}★): "${tComment || 'None'}"
+Punctuality Feedback (${punctualityRating || 'N/A'}★): "${pComment || 'None'}"
+Behavior Feedback (${behaviorRating || 'N/A'}★): "${bComment || 'None'}"
 `.trim();
 
+  // 4. Strict AI Verification (Banglish, Insult & Context Balance)
   const prompt = `
-You are the evaluation moderator for the academic platform EDURATE.
+You are the primary moderation engine for EDURATE, a university faculty feedback platform.
 Analyze the following student feedback comments:
 
 ${feedbackText}
 
-MODERATION RULES:
-1. BANGLISH: If ANY field contains Bengali written phonetically in English/Latin letters (even if polite or positive), mark "isToxic": true with reason "Banglish is prohibited. Use Bengali script or English."
-2. PERSONAL ATTACKS & EXCLUSION: Hostility, demanding someone to be fired/removed/banned must have "isToxic": true.
-3. CONSTRUCTIVE CRITICISM: Polite constructive critiques or positive evaluations in standard English or proper Bengali script (বাংলা হরফ) must have "isToxic": false.
+STRICT MODERATION DIRECTIVES:
 
-OUTPUT STRICT JSON ONLY:
+[BLOCK THESE - Set "isToxic": true]
+1. BANGLISH: Writing Bengali words phonetically using English/Latin alphabet (e.g., "khub valo", "sir er class", "porano bhalo na", "onek hard"). Even if polite or positive, BANGLISH IS NEVER ALLOWED.
+2. INSULTS & PERSONAL ATTACKS: Disrespectful behavior remarks, insults to intelligence or personality, mocking, or hostile disrespect.
+3. REMOVAL/FIRING DEMANDS: Asking to fire, terminate, ban, dismiss, or kick out the instructor.
+4. PROFANITY & SLURS: Any vulgarity or slang.
+
+[ALLOW THESE - Set "isToxic": false]
+1. CONSTRUCTIVE CRITICISM: Respectfully pointing out mistakes, syllabus pacing, asking for clear board writing, requesting more problem-solving/lab explanations, or exams being tough, written in PROPER BENGALI SCRIPT (বাংলা হরফ) OR STANDARD ENGLISH.
+2. GENUINE PRAISE: Polite appreciation written in proper Bengali script or standard English.
+
+OUTPUT STRICT RAW JSON ONLY:
 {
   "isToxic": false,
   "rejectionReason": null,
-  "sentiment": "Positive" or "Constructive" or "Negative",
-  "aiSummary": "1 sentence academic summary in English"
+  "sentiment": "Positive" | "Constructive" | "Negative",
+  "aiSummary": "1 concise sentence in English summarizing the constructive takeaway"
 }
 `;
 
