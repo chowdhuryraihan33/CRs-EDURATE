@@ -7,6 +7,35 @@ export default async function handler(req, res) {
   const { comment, tComment, pComment, bComment, teachingRating, punctualityRating, behaviorRating } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
+  // Calculate average rating and set dynamic fallback sentiment & actions
+  const avgStars = (Number(teachingRating || 3) + Number(punctualityRating || 3) + Number(behaviorRating || 3)) / 3;
+
+  let fallbackSentiment = "Constructive";
+  let fallbackSummary = "The student provided detailed, constructive observations regarding the course pace and interaction.";
+  let fallbackActionItems = [
+    "Maintain structured syllabus pacing and clear conceptual demonstrations.",
+    "Ensure board handwriting size and projector contrast are suitable for back-benchers.",
+    "Allocate a 5-10 minute buffer at the end of lectures for open student Q&A."
+  ];
+
+  if (avgStars >= 4.0) {
+    fallbackSentiment = "Positive";
+    fallbackSummary = "The student expressed strong satisfaction with the lecture delivery, clarity, and overall engagement.";
+    fallbackActionItems = [
+      "Sustain current interactive lecture engagement methods and clear real-world examples.",
+      "Consider sharing supplementary enrichment material for highly engaged students.",
+      "Maintain active student-teacher dialogue throughout subsequent modules."
+    ];
+  } else if (avgStars <= 2.2) {
+    fallbackSentiment = "Critical";
+    fallbackSummary = "The student noted notable operational friction, specifically addressing pacing, punctuality, or content absorption.";
+    fallbackActionItems = [
+      "Ensure class sessions commence strictly on schedule to prevent rushing concluding topics.",
+      "Review core concept delivery speed to ensure foundational understanding before progressing.",
+      "Integrate regular comprehension checks throughout the lecture period."
+    ];
+  }
+
   const rawText = ` ${comment || ''} ${tComment || ''} ${pComment || ''} ${bComment || ''} `.toLowerCase();
 
   // 1. Shorasori Gali & Obomanonakor Shobdo (Instant Block - Bangla, English & Slang)
@@ -25,8 +54,8 @@ export default async function handler(req, res) {
   const hostilePatterns = [
     "fired", "fire him", "fire her", "kicked out", "kick out", "be removed",
     "not be allowed", "incompetent", "worthless", "clown", "fraud", "scam",
-    "চাকরিচ্যুতি", "বহিষ্কার", "বের করে দেওয়া", "পড়ানোর যোগ্যতা নেই", "চাকরি থেকে",
-    "অযোগ্য", "কোনো যোগ্যতা নাই", "দূর করে দেওয়া হোক", "গায়ে হাত", "বেয়াদব"
+    "চাকরিচ্যুতি", "বহিষ্কার", "বের করে দেওয়া", "পড়ানোর যোগ্যতা নেই", "চাকরি থেকে",
+    "অযোগ্য", "কোনো যোগ্যতা নাই", "দূর করে দেওয়া হোক", "গায়ে হাত", "বেয়াদব"
   ];
 
   if (hostilePatterns.some(pattern => rawText.includes(pattern))) {
@@ -116,19 +145,15 @@ OUTPUT STRICT RAW JSON ONLY:
 
     const data = await response.json();
 
-    // Jodi Google busy thake ba error dey, student-ke na atkiye safe fallback-e save kore nibe
+    // If Google experiences high demand or errors, gracefully fall back based on star score
     if (data.error || !data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-      console.warn("Gemini busy or returned error, applying safe fallback");
+      console.warn("Gemini busy or returned error, applying rating-based smart fallback");
       return res.status(200).json({
         isToxic: false,
         rejectionReason: null,
-        sentiment: "Constructive",
-        aiSummary: "The student provided detailed, constructive observations regarding the course pace and interaction.",
-        actionItems: [
-          "Maintain structured syllabus pacing and clear conceptual demonstrations.",
-          "Ensure board handwriting size and projector contrast are suitable for back-benchers.",
-          "Allocate a 5-10 minute buffer at the end of lectures for open student Q&A."
-        ]
+        sentiment: fallbackSentiment,
+        aiSummary: fallbackSummary,
+        actionItems: fallbackActionItems
       });
     }
 
@@ -142,7 +167,7 @@ OUTPUT STRICT RAW JSON ONLY:
       result = {};
     }
 
-    // Jodi toxic dhora pore, shathe shathe reject
+    // Flag and reject toxic content immediately
     if (result.isToxic) {
       return res.status(200).json({
         isToxic: true,
@@ -150,31 +175,23 @@ OUTPUT STRICT RAW JSON ONLY:
       });
     }
 
-    // Pass hole clean analysis return
+    // Pass and return dynamic AI synthesis
     return res.status(200).json({
       isToxic: false,
       rejectionReason: null,
-      sentiment: result.sentiment || "Constructive",
-      aiSummary: result.aiSummary || "Student feedback acknowledged with constructive highlights.",
-      actionItems: (Array.isArray(result.actionItems) && result.actionItems.length > 0) ? result.actionItems : [
-        "Focus on structured pacing during complex topic explanations.",
-        "Ensure lectures start on schedule to avoid rushing end-of-class topics.",
-        "Maintain open student interactions for doubt clearing."
-      ]
+      sentiment: result.sentiment || fallbackSentiment,
+      aiSummary: result.aiSummary || fallbackSummary,
+      actionItems: (Array.isArray(result.actionItems) && result.actionItems.length > 0) ? result.actionItems : fallbackActionItems
     });
 
   } catch (error) {
-    // Kono network issue ba timeout holeo form jeno smooth submit hoy
+    // Network failures or timeouts safely fall back using actual student star ratings
     return res.status(200).json({
       isToxic: false,
       rejectionReason: null,
-      sentiment: "Constructive",
-      aiSummary: "Actionable pedagogical feedback noted successfully.",
-      actionItems: [
-        "Maintain structured syllabus pacing and clear conceptual demonstrations.",
-        "Ensure board handwriting size and projector contrast are suitable for back-benchers.",
-        "Allocate a 5-10 minute buffer at the end of lectures for open student Q&A."
-      ]
+      sentiment: fallbackSentiment,
+      aiSummary: fallbackSummary,
+      actionItems: fallbackActionItems
     });
   }
 }
