@@ -153,6 +153,20 @@
                 </table>
             </div>
         </div>
+
+        <!-- 🚨 SUPER ADMIN FACTORY RESET CARD -->
+        <div class="admin-card" style="border: 2px solid var(--danger); background: rgba(231, 76, 60, 0.04); text-align: center; margin-top: 20px;">
+            <h2 class="section-title" style="color: var(--danger); border-left-color: var(--danger); justify-content: center;">
+                🚨 System Factory Reset (Super Admin Only)
+            </h2>
+            <p style="font-size: 13px; opacity: 0.8; margin-bottom: 20px; color: var(--text);">
+                WARNING: This will permanently wipe all <strong>Ratings</strong>, <strong>Notifications</strong>, and all registered <strong>Users</strong> (students, teachers, and secondary admins) except the Super Admin account, restoring the platform to a clean state.
+            </p>
+            <button class="btn-action btn-decline" style="padding: 12px 30px; font-size: 14px; font-weight: 800; border-radius: 12px; cursor: pointer;" onclick="executeSuperFactoryReset()">
+                ⚠️ Perform Full System Reset
+            </button>
+        </div>
+
     </div>
 
     <div id="toast">Message goes here</div>
@@ -160,8 +174,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, deleteDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+       import { getFirestore, collection, deleteDoc, updateDoc, doc, onSnapshot, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         const firebaseConfig = {
             apiKey: "AIzaSyBj4d6Bcpwe6UYZIqmuhCW_HHzQmpm8bYY",
             authDomain: "edurate-74300.firebaseapp.com",
@@ -401,6 +414,53 @@
         document.getElementById('logoutBtn').addEventListener('click', () => {
             signOut(auth).then(() => { localStorage.clear(); window.location.replace('index.html'); });
         });
+
+        // 🚀 SUPER ADMIN FULL FACTORY RESET EXECUTION
+        window.executeSuperFactoryReset = async () => {
+            const secretKey = prompt("⚠️ CRITICAL WARNING!\n\nThis will permanently delete all users (except Super Admin), all evaluation ratings, and all notification history.\n\nType RESET-ALL in capital letters to confirm:");
+
+            if (secretKey !== "RESET-ALL") {
+                showToast("❌ Reset action cancelled.", true);
+                return;
+            }
+
+            try {
+                showToast("⏳ Resetting system to factory state...", false);
+
+                // 1. Delete all ratings documents
+                const ratingsSnap = await getDocs(collection(db, "ratings"));
+                const batchRatings = writeBatch(db);
+                ratingsSnap.forEach(d => batchRatings.delete(d.ref));
+                await batchRatings.commit();
+
+                // 2. Delete all notifications
+                const notifSnap = await getDocs(collection(db, "notifications"));
+                const batchNotif = writeBatch(db);
+                notifSnap.forEach(d => batchNotif.delete(d.ref));
+                await batchNotif.commit();
+
+                // 3. Delete all users except Super Admin
+                const usersSnap = await getDocs(collection(db, "users"));
+                const batchUsers = writeBatch(db);
+                usersSnap.forEach(d => {
+                    const u = d.data();
+                    const isSuper = (u.email === SUPER_ADMIN_EMAIL || u.realEmail === SUPER_ADMIN_EMAIL);
+                    if (!isSuper) {
+                        batchUsers.delete(d.ref);
+                    }
+                });
+                await batchUsers.commit();
+
+                showToast("✅ System successfully reset to clean factory state!");
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+
+            } catch (err) {
+                console.error("Factory Reset Error:", err);
+                showToast("❌ Factory reset failed!", true);
+            }
+        };
     </script>
 </body>
 </html>
